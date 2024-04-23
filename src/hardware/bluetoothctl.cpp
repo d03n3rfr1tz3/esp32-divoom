@@ -56,6 +56,7 @@ bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *
     serialBT.discoverAsyncStop();
     serialBT.discoverClear();
     
+    if (isConnected) serialBT.disconnect();
     if (pin != nullptr) serialBT.setPin(pin);
     return serialBT.connect(address, channel);
 }

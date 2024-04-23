@@ -31,10 +31,15 @@ void SerialInput::loop() {
  * the forward channel for a bluetooth connection
 */
 void SerialInput::forward(const char *address, uint16_t port) {
-    serialIn.print("CONNECT ");
-    serialIn.print(address);
-    serialIn.print(" ");
-    serialIn.println(port);
+    if (port > 0) {
+        serialIn.print("CONNECT ");
+        serialIn.print(address);
+        serialIn.print(" ");
+        serialIn.println(port);
+    } else {
+        serialIn.print("DISCONNECT ");
+        serialIn.println(address);
+    }
 }
 
 /**
@@ -91,6 +96,26 @@ void SerialInput::parse(const uint8_t *buffer, size_t size) {
 
         if (size > 18) {
             port = content[18] - '0';
+        }
+
+        BTAddress address(bytes);
+        BaseInput::forward(address.toString().c_str(), port);
+        BluetoothOutput::setup(address, port);
+    }
+
+    if (strncmp("DISCONNECT ", input, strlen("DISCONNECT ")) == 0) {
+        size_t offset = strlen("DISCONNECT ") * sizeof(uint8_t);
+        char* content = input + offset;
+        size -= offset;
+
+        size_t index = 0;
+        esp_bd_addr_t bytes;
+        uint16_t port = 0;
+
+        char *token = strtok(content, ":");
+        while (token != NULL) {
+            bytes[index++] = strtoul(token, NULL, 16);
+            token = strtok(NULL, ":");
         }
 
         BTAddress address(bytes);

@@ -7,11 +7,15 @@
 #include "output/base.h"
 
 /**
- * setup functionality, that connects to the given bluetooth device
+ * setup functionality, that connects to or disconnects from a bluetooth device
 */
 void BluetoothOutput::setup(BTAddress address, uint16_t channel) { return setup(address, channel, nullptr); };
 void BluetoothOutput::setup(BTAddress address, uint16_t channel, const char *pin) {
-    BluetoothHandler::connect(address, channel, pin);
+    if (channel == 0) {
+        BluetoothHandler::disconnect();
+    } else {
+        BluetoothHandler::connect(address, channel, pin);
+    }
 }
 
 /**

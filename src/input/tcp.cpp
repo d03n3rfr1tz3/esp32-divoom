@@ -121,7 +121,7 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
 void TcpInput::parse(const uint8_t *data, size_t size) {
 
     // recognize a connect statement and pass it into Bluetooth handler
-    if (data[0] == 0x00 && size > ESP_BD_ADDR_LEN) {
+    if (data[0] == 0x69 && size > ESP_BD_ADDR_LEN) {
         esp_bd_addr_t bytes;
         uint16_t port = 1;
 
@@ -134,6 +134,21 @@ void TcpInput::parse(const uint8_t *data, size_t size) {
             port = data[7];
         }
         
+        BTAddress address(bytes);
+        BaseInput::forward(address.toString().c_str(), port);
+        BluetoothOutput::setup(address, port);
+    }
+
+    // recognize a connect statement and pass it into Bluetooth handler
+    if (data[0] == 0x96 && size > ESP_BD_ADDR_LEN) {
+        esp_bd_addr_t bytes;
+        uint16_t port = 0;
+
+        for (size_t i = 0; i < ESP_BD_ADDR_LEN; i++)
+        {
+            bytes[i] = (uint8_t)data[i + 1];
+        }
+
         BTAddress address(bytes);
         BaseInput::forward(address.toString().c_str(), port);
         BluetoothOutput::setup(address, port);
