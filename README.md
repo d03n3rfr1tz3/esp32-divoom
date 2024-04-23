@@ -1,6 +1,6 @@
 # esp32-divoom
 [![Compile Project](https://github.com/d03n3rfr1tz3/esp32-divoom/actions/workflows/build.yml/badge.svg)](https://github.com/d03n3rfr1tz3/esp32-divoom/actions/workflows/build.yml)
-[![GitHub release](https://img.shields.io/github/release/d03n3rfr1tz3/esp32-divoom.svg)](https://github.com/d03n3rfr1tz3/esp32-divoom/releases/latest)
+[![GitHub Release](https://img.shields.io/github/v/release/d03n3rfr1tz3/esp32-divoom?include_prereleases)](https://github.com/d03n3rfr1tz3/esp32-divoom/releases/latest)
 
 **Divoom Proxy for ESP32**
 
