@@ -1,0 +1,107 @@
+
+#include "bluetoothctl.h"
+
+#include "util.h"
+#include "input/base.h"
+#include "output/base.h"
+
+/**
+ * setup functionality
+*/
+void BluetoothHandler::setup(void) {
+    serialBT.begin(BLUETOOTH_NAME, true);
+    serialBT.register_callback(received);
+    serialBT.discoverAsync(discovered, 500);
+}
+
+/**
+ * loop functionality
+*/
+void BluetoothHandler::loop(void) {
+    if (getElapsed(timer) > 15000) {
+        timer = millis();
+
+        check();
+    }
+}
+
+/**
+ * checks connection and scanning state and keeps background tasks up
+*/
+bool BluetoothHandler::check() {
+    if (!isScanning && serialBT.connected(1000)) {
+        isConnected = true;
+        return true;
+    } else {
+        isConnected = false;
+
+        if (isScanning) {
+            serialBT.discoverAsyncStop();
+            serialBT.discoverClear();
+            isScanning = false;
+        } else {
+            serialBT.discoverAsync(discovered, 2500);
+            isScanning = true;
+        }
+
+        return false;
+    }
+}
+
+/**
+ * connects to the given bluetooth device
+*/
+bool BluetoothHandler::connect(BTAddress address, uint16_t channel) { return connect(address, channel, nullptr); };
+bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *pin) {
+    serialBT.discoverAsyncStop();
+    serialBT.discoverClear();
+    
+    if (pin != nullptr) serialBT.setPin(pin);
+    return serialBT.connect(address, channel);
+}
+
+/**
+ * disconnects from the current bluetooth device
+*/
+bool BluetoothHandler::disconnect(void) {
+    return serialBT.disconnect();
+}
+
+/**
+ * callback for when a bluetooth device was discovered
+*/
+void BluetoothHandler::discovered(BTAdvertisedDevice* device) {
+    if (!device->haveName()) return;
+
+    esp_bd_addr_t* address = device->getAddress().getNative();
+    std::string name = device->getName();
+
+    // pass it into the input handlers for an advertise announcement
+    BaseInput::advertise((const uint8_t*)address, name.c_str(), name.size());
+}
+
+/**
+ * callback for when some data from a bluetooth device was received
+*/
+void BluetoothHandler::received(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
+    switch (event) {
+        case ESP_SPP_DATA_IND_EVT:
+            size_t available;
+            uint8_t buffer[64];
+            while (available = serialBT.available()) {
+                size_t size = serialBT.readBytes(buffer, available);
+
+                // pass it into the output handlers backward channel
+                BluetoothOutput::backward(buffer, size);
+            }
+            break;
+    }
+}
+
+/**
+ * sends data to the bluetooth device
+*/
+size_t BluetoothHandler::send(const uint8_t *buffer, size_t size) {
+    if (!isConnected) return 0;
+    return serialBT.write(buffer, size);
+}
