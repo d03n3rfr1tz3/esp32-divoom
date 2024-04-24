@@ -94,6 +94,9 @@ void WifiHandler::connected(WiFiEvent_t event, WiFiEventInfo_t info) {
     WiFi.setAutoReconnect(true);
     WiFi.setHostname(WIFI_NAME);
     WiFi.persistent(true);
+
+    MDNS.begin(WIFI_NAME);
+    MDNS.addService("_divoom_esp32", "_tcp", TCP_PORT);
 }
 
 /**

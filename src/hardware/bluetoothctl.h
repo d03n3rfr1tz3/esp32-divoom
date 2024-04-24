@@ -6,6 +6,7 @@
     
     #include "Arduino.h"
     #include "BluetoothSerial.h"
+    #include "ESPmDNS.h"
 
     class BluetoothHandler {
         public:

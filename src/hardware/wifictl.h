@@ -5,6 +5,7 @@
     #include "config.h"
     
     #include "Arduino.h"
+    #include "ESPmDNS.h"
     #include "WiFi.h"
 
     class WifiHandler {
