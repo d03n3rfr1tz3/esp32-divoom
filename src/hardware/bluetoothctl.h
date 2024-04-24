@@ -22,11 +22,12 @@
 
         private:
             inline static bool isConnected;
+            inline static bool isConnecting;
             inline static bool isScanning;
             inline static unsigned long timer;
             inline static BluetoothSerial serialBT;
 
             static void discovered(BTAdvertisedDevice* device);
-            static void received(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
+            static void event(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
     };
 #endif

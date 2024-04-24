@@ -23,7 +23,12 @@ void SerialInput::loop() {
         if (buffer[size - 1] == '\r') size -= sizeof(char);
         buffer[size] = '\0';
 
-        parse((const uint8_t *)buffer, size);
+        data_packet_t dataPacket;
+        dataPacket.data = (const uint8_t *)buffer;
+        dataPacket.size = size;
+        
+        xTaskCreatePinnedToCore(parse, "ParsePacketTask", 4096, (void*)&dataPacket, 1, &parsePacketHandle, 1);
+        delay(1);
     }
 }
 
@@ -75,13 +80,16 @@ void SerialInput::advertise(const uint8_t* address, const char* name, size_t siz
 /**
  * the parser for incoming data
 */
-void SerialInput::parse(const uint8_t *buffer, size_t size) {
-    char* input = (char*)buffer;
+void SerialInput::parse(void *parameter) {
+    data_packet_t dataPacket = *((data_packet_t*)parameter);
+    size_t size = dataPacket.size;
+    char data[size];
+    memcpy(data, dataPacket.data, sizeof(data));
 
     // recognize a connect statement and pass it into Bluetooth handler
-    if (strncmp("CONNECT ", input, strlen("CONNECT ")) == 0) {
+    if (strncmp("CONNECT ", data, strlen("CONNECT ")) == 0) {
         size_t offset = strlen("CONNECT ") * sizeof(uint8_t);
-        char* content = input + offset;
+        char* content = data + offset;
         size -= offset;
 
         size_t index = 0;
@@ -103,9 +111,10 @@ void SerialInput::parse(const uint8_t *buffer, size_t size) {
         BluetoothOutput::setup(address, port);
     }
 
-    if (strncmp("DISCONNECT ", input, strlen("DISCONNECT ")) == 0) {
+    // recognize a disconnect statement and pass it into Bluetooth handler
+    if (strncmp("DISCONNECT ", data, strlen("DISCONNECT ")) == 0) {
         size_t offset = strlen("DISCONNECT ") * sizeof(uint8_t);
-        char* content = input + offset;
+        char* content = data + offset;
         size -= offset;
 
         size_t index = 0;
@@ -124,18 +133,18 @@ void SerialInput::parse(const uint8_t *buffer, size_t size) {
     }
 
     // recognize a mode statement and pass it into Divoom handler
-    if (strncmp("MODE ", input, strlen("MODE ")) == 0) {
+    if (strncmp("MODE ", data, strlen("MODE ")) == 0) {
         size_t offset = strlen("MODE ") * sizeof(uint8_t);
-        char* content = input + offset;
+        char* content = data + offset;
         size -= offset;
 
         //TODO: Pass the parsed content into divoom.h functions
     }
 
     // recognize a raw statement and pass it into Output handlers
-    if (strncmp("SEND ", input, strlen("SEND ")) == 0) {
+    if (strncmp("SEND ", data, strlen("SEND ")) == 0) {
         size_t offset = strlen("SEND ") * sizeof(uint8_t);
-        char* content = input + offset;
+        char* content = data + offset;
         size -= offset;
 
         size_t index = 0;
@@ -150,6 +159,8 @@ void SerialInput::parse(const uint8_t *buffer, size_t size) {
         BaseInput::forward(bytes, index);
         BaseOutput::forward(bytes, index);
     }
+    
+    vTaskDelete(NULL);
 }
 
 /**

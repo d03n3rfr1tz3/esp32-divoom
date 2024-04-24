@@ -86,7 +86,12 @@ void TcpInput::connection(void *arg, AsyncClient *client) {
  * callback for when a client send data
 */
 void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
-    parse((const uint8_t *)data, size);
+    data_packet_t dataPacket;
+    dataPacket.data = (const uint8_t *)data;
+    dataPacket.size = size;
+    
+    xTaskCreatePinnedToCore(parse, "ParsePacketTask", 4096, (void*)&dataPacket, 1, &parsePacketHandle, 1);
+    delay(1);
 }
 
 /**
@@ -118,7 +123,11 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
 /**
  * the parser for incoming data
 */
-void TcpInput::parse(const uint8_t *data, size_t size) {
+void TcpInput::parse(void *parameter) {
+    data_packet_t dataPacket = *((data_packet_t*)parameter);
+    size_t size = dataPacket.size;
+    uint8_t data[size];
+    memcpy(data, dataPacket.data, sizeof(data));
 
     // recognize a connect statement and pass it into Bluetooth handler
     if (data[0] == 0x69 && size > ESP_BD_ADDR_LEN) {
@@ -139,7 +148,7 @@ void TcpInput::parse(const uint8_t *data, size_t size) {
         BluetoothOutput::setup(address, port);
     }
 
-    // recognize a connect statement and pass it into Bluetooth handler
+    // recognize a disconnect statement and pass it into Bluetooth handler
     if (data[0] == 0x96 && size > ESP_BD_ADDR_LEN) {
         esp_bd_addr_t bytes;
         uint16_t port = 0;
@@ -159,6 +168,8 @@ void TcpInput::parse(const uint8_t *data, size_t size) {
         BaseInput::forward(data, size);
         BaseOutput::forward(data, size);
     }
+    
+    vTaskDelete(NULL);
 }
 
 /**

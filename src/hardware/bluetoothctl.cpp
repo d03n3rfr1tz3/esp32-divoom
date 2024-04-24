@@ -10,15 +10,17 @@
 */
 void BluetoothHandler::setup(void) {
     serialBT.begin(BLUETOOTH_NAME, true);
-    serialBT.register_callback(received);
-    serialBT.discoverAsync(discovered, 500);
+    serialBT.setTimeout(5000);
+
+    serialBT.register_callback(event);
+    isScanning = serialBT.discoverAsync(discovered, 500);
 }
 
 /**
  * loop functionality
 */
 void BluetoothHandler::loop(void) {
-    if (getElapsed(timer) > 15000) {
+    if (getElapsed(timer) > 10000) {
         timer = millis();
 
         check();
@@ -29,19 +31,21 @@ void BluetoothHandler::loop(void) {
  * checks connection and scanning state and keeps background tasks up
 */
 bool BluetoothHandler::check() {
-    if (!isScanning && serialBT.connected(1000)) {
+    if (!isScanning && serialBT.connected(2500)) {
         isConnected = true;
+        isConnecting = false;
         return true;
     } else {
         isConnected = false;
+        isConnecting = false;
 
         if (isScanning) {
             serialBT.discoverAsyncStop();
             serialBT.discoverClear();
             isScanning = false;
         } else {
-            serialBT.discoverAsync(discovered, 2500);
-            isScanning = true;
+            serialBT.register_callback(event);
+            isScanning = serialBT.discoverAsync(discovered, 2500);
         }
 
         return false;
@@ -55,9 +59,13 @@ bool BluetoothHandler::connect(BTAddress address, uint16_t channel) { return con
 bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *pin) {
     serialBT.discoverAsyncStop();
     serialBT.discoverClear();
+    isScanning = false;
     
-    if (isConnected) serialBT.disconnect();
+    if (isConnected) BluetoothHandler::disconnect();
     if (pin != nullptr) serialBT.setPin(pin);
+    delay(10);
+    
+    isConnecting = true;
     return serialBT.connect(address, channel);
 }
 
@@ -65,6 +73,8 @@ bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *
  * disconnects from the current bluetooth device
 */
 bool BluetoothHandler::disconnect(void) {
+    isConnected = false;
+    isConnecting = false;
     return serialBT.disconnect();
 }
 
@@ -92,8 +102,16 @@ void BluetoothHandler::discovered(BTAdvertisedDevice* device) {
 /**
  * callback for when some data from a bluetooth device was received
 */
-void BluetoothHandler::received(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
+void BluetoothHandler::event(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
     switch (event) {
+        case ESP_SPP_OPEN_EVT:
+            isConnected = true;
+            isConnecting = false;
+            break;
+        case ESP_SPP_CLOSE_EVT:
+            isConnected = false;
+            isConnecting = false;
+            break;
         case ESP_SPP_DATA_IND_EVT:
             size_t available;
             uint8_t buffer[64];
@@ -111,6 +129,7 @@ void BluetoothHandler::received(esp_spp_cb_event_t event, esp_spp_cb_param_t *pa
  * sends data to the bluetooth device
 */
 size_t BluetoothHandler::send(const uint8_t *buffer, size_t size) {
-    if (!isConnected) return 0;
+    if (!isConnected && !isConnecting) return -1;
+    if (!isConnected && isConnecting) return 0;
     return serialBT.write(buffer, size);
 }

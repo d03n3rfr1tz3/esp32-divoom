@@ -3,6 +3,7 @@
     #define _INPUT_TCP_H
 
     #include "config.h"
+    #include "util.h"
     
     #include "Arduino.h"
     #include "AsyncTCP.h"
@@ -23,7 +24,9 @@
             static void disconnect(void *arg, AsyncClient *client);
         
         private:
-            static void parse(const uint8_t *data, size_t size);
+            inline static TaskHandle_t parsePacketHandle;
+            
+            static void parse(void *parameter);
             static void write(const uint8_t *data, size_t size);
     };
 #endif

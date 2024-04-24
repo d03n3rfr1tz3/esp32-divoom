@@ -18,14 +18,14 @@ void WifiHandler::setup(void) {
     WiFi.onEvent(scanned, WiFiEvent_t::ARDUINO_EVENT_WIFI_SCAN_DONE);
     WiFi.onEvent(connected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
     WiFi.onEvent(disconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-    WiFi.scanNetworks(true, false, false, 250);
+    WiFi.scanNetworks(true, false, false, 500);
 }
 
 /**
  * loop functionality
 */
 void WifiHandler::loop(void) {
-    if (getElapsed(timer) > 15000) {
+    if (getElapsed(timer) > 10000) {
         timer = millis();
 
         check();
@@ -51,7 +51,7 @@ bool WifiHandler::check(void) {
              wifiStatus == WL_NO_SSID_AVAIL ||
              wifiStatus == WL_CONNECT_FAILED ||
              wifiStatus == WL_DISCONNECTED) && scanStatus != -1) {
-            WiFi.scanNetworks(true, false, false, 500);
+            WiFi.scanNetworks(true, false, false, 2500);
         }
 
         return WiFi.status() == WL_CONNECTED;
