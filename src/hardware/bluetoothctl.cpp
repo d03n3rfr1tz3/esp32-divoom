@@ -23,14 +23,16 @@ void BluetoothHandler::loop(void) {
     if (getElapsed(timer) > 10000) {
         timer = millis();
 
-        check();
+        check(false);
     }
 }
 
 /**
  * checks connection and scanning state and keeps background tasks up
 */
-bool BluetoothHandler::check() {
+bool BluetoothHandler::check(bool fast) {
+    if (fast) return isConnected;
+    
     if (!isScanning && serialBT.connected(2500)) {
         isConnected = true;
         isConnecting = false;
@@ -107,10 +109,12 @@ void BluetoothHandler::event(esp_spp_cb_event_t event, esp_spp_cb_param_t *param
         case ESP_SPP_OPEN_EVT:
             isConnected = true;
             isConnecting = false;
+            MqttInput::update();
             break;
         case ESP_SPP_CLOSE_EVT:
             isConnected = false;
             isConnecting = false;
+            MqttInput::update();
             break;
         case ESP_SPP_DATA_IND_EVT:
             size_t available;

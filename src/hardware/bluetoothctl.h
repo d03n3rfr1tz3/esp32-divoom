@@ -12,7 +12,7 @@
         public:
             static void setup(void);
             static void loop(void);
-            static bool check(void);
+            static bool check(bool fast);
 
             static bool connect(BTAddress address, uint16_t channel, const char *pin);
             static bool connect(BTAddress address, uint16_t channel);

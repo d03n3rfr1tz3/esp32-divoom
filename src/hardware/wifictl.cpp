@@ -28,14 +28,16 @@ void WifiHandler::loop(void) {
     if (getElapsed(timer) > 10000) {
         timer = millis();
 
-        check();
+        check(false);
     }
 }
 
 /**
  * checks connection and scanning state and keeps background tasks up
 */
-bool WifiHandler::check(void) {
+bool WifiHandler::check(bool fast) {
+    if (fast) return isConnected;
+    
     if (WiFi.status() == WL_CONNECTED)
     {
         isConnected = true;

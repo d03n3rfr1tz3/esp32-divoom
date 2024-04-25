@@ -6,6 +6,7 @@
 */
 void BaseInput::setup() {
     TcpInput::setup();
+    MqttInput::setup();
     SerialInput::setup();
 }
 
@@ -14,6 +15,7 @@ void BaseInput::setup() {
 */
 void BaseInput::loop() {
     TcpInput::loop();
+    MqttInput::loop();
     SerialInput::loop();
 }
 
@@ -22,6 +24,7 @@ void BaseInput::loop() {
 */
 void BaseInput::forward(const char *address, uint16_t port) {
     TcpInput::forward(address, port);
+    MqttInput::forward(address, port);
     SerialInput::forward(address, port);
 }
 
@@ -30,6 +33,7 @@ void BaseInput::forward(const char *address, uint16_t port) {
 */
 void BaseInput::forward(const uint8_t *buffer, size_t size) {
     TcpInput::forward(buffer, size);
+    MqttInput::forward(buffer, size);
     SerialInput::forward(buffer, size);
 }
 
@@ -38,6 +42,7 @@ void BaseInput::forward(const uint8_t *buffer, size_t size) {
 */
 void BaseInput::backward(const uint8_t *buffer, size_t size) {
     TcpInput::backward(buffer, size);
+    MqttInput::backward(buffer, size);
     SerialInput::backward(buffer, size);
 }
 
@@ -46,5 +51,6 @@ void BaseInput::backward(const uint8_t *buffer, size_t size) {
 */
 void BaseInput::advertise(const uint8_t* address, const char* name, size_t size) {
     TcpInput::advertise(address, name, size);
+    MqttInput::advertise(address, name, size);
     SerialInput::advertise(address, name, size);
 }

@@ -4,6 +4,7 @@
     
     #include "Arduino.h"
 
+    #include "mqtt.h"
     #include "serial.h"
     #include "tcp.h"
 
