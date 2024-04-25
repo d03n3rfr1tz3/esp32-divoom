@@ -127,7 +127,8 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
  * the queue handler
 */
 void TcpInput::queue(void *parameter) {
-    //TODO: if there are multiple packets (like for a GIF), get all packets and split them into 210 byte pieces. currently only the first packet gets split, which breaks bigger GIFs
+    size_t previousSize = 0;
+    uint8_t previousBuffer[210];
 
     while (true) {
         data_packet_t dataPacket;
@@ -135,17 +136,37 @@ void TcpInput::queue(void *parameter) {
             size_t off = 0;
             size_t maxImage = 274;
             size_t maxAnimation = 210;
-            size_t len = dataPacket.size;
+            size_t len = previousSize + dataPacket.size;
             uint8_t *buffer = dataPacket.data;
 
             while (len > 0) {
-                size_t max = buffer[0] == 0x01 && buffer[3] == 0x49 ? maxAnimation : maxImage;
+                // prepare packet
+                uint8_t *packet = previousSize > 0 ? previousBuffer : buffer;
+
+                // split packet into corresponding max size, if necessary
+                size_t max = packet[0] == 0x01 && packet[3] == 0x49 ? maxAnimation : maxImage;
                 size_t use = len > max ? max : len;
-                TcpInput::parse(buffer, use);
+
+                // copy rest of the current buffer into previous buffer
+                if (previousSize > 0) {
+                    memcpy(previousBuffer, buffer, use - previousSize);
+                }
+
+                // parse and process packet
+                TcpInput::parse(packet, use);
                 
-                off += use;
-                buffer += use;
+                // move pointer and reduce open length
+                off += use - previousSize;
+                buffer += use - previousSize;
                 len = dataPacket.size - off;
+                previousSize = 0;
+
+                // copy rest into separate buffer instead of sending incomplete data, if there is another message in the queue
+                if (len <= max && uxQueueMessagesWaiting(parsePacketQueue) > 0) {
+                    previousSize = len;
+                    memcpy(previousBuffer, buffer, len);
+                    break;
+                }
             }
         }
     }
