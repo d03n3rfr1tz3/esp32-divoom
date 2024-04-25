@@ -13,13 +13,15 @@ AsyncClient* tcpClients[TCP_MAX];
 void TcpInput::setup() {
     tcpServer.onClient(connection, &tcpServer);
     tcpServer.begin();
+
+    parsePacketQueue = xQueueCreate(10, sizeof(data_packet_t));
 }
 
 /**
  * loop functionality
 */
 void TcpInput::loop() {
-    // no additional handling needed
+    TcpInput::queue();
 }
 
 /**
@@ -86,12 +88,12 @@ void TcpInput::connection(void *arg, AsyncClient *client) {
  * callback for when a client send data
 */
 void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
+
     data_packet_t dataPacket;
-    dataPacket.data = (const uint8_t *)data;
     dataPacket.size = size;
-    
-    xTaskCreatePinnedToCore(parse, "ParsePacketTask", 4096, (void*)&dataPacket, 1, &parsePacketHandle, 1);
-    delay(1);
+    memcpy(dataPacket.data, (uint8_t*)data, size);
+
+    xQueueSend(parsePacketQueue, (void*)&dataPacket, (TickType_t)10);
 }
 
 /**
@@ -121,26 +123,47 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
 }
 
 /**
+ * the queue handler
+*/
+void TcpInput::queue() {
+    //TODO: if there are multiple packets (like for a GIF), get all packets and split them into 210 byte pieces. currently only the first packet gets split, which breaks bigger GIFs
+    //TODO: only split into 210 byte pieces, if it can be parsed as a frame. otherwise pass it through unchanged to make single images work
+
+    data_packet_t dataPacket;
+    if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)10) == pdPASS) {
+        size_t off = 0;
+        size_t max = 210;
+        size_t len = dataPacket.size;
+        uint8_t *buffer = dataPacket.data;
+
+        while (len > 0) {
+            size_t use = len > max ? max : len;
+            TcpInput::parse(buffer, use);
+            
+            off += use;
+            buffer += use;
+            len = dataPacket.size - off;
+        }
+    }
+}
+
+/**
  * the parser for incoming data
 */
-void TcpInput::parse(void *parameter) {
-    data_packet_t dataPacket = *((data_packet_t*)parameter);
-    size_t size = dataPacket.size;
-    uint8_t data[size];
-    memcpy(data, dataPacket.data, sizeof(data));
+void TcpInput::parse(const uint8_t *buffer, size_t size) {
 
     // recognize a connect statement and pass it into Bluetooth handler
-    if (data[0] == 0x69 && size > ESP_BD_ADDR_LEN) {
+    if (buffer[0] == 0x69 && size >= ESP_BD_ADDR_LEN + 1 && size <= ESP_BD_ADDR_LEN + 2) {
         esp_bd_addr_t bytes;
         uint16_t port = 1;
 
         for (size_t i = 0; i < ESP_BD_ADDR_LEN; i++)
         {
-            bytes[i] = (uint8_t)data[i + 1];
+            bytes[i] = buffer[i + 1];
         }
 
         if (size > ESP_BD_ADDR_LEN + 1) {
-            port = data[7];
+            port = buffer[7];
         }
         
         BTAddress address(bytes);
@@ -149,13 +172,13 @@ void TcpInput::parse(void *parameter) {
     }
 
     // recognize a disconnect statement and pass it into Bluetooth handler
-    if (data[0] == 0x96 && size > ESP_BD_ADDR_LEN) {
+    if (buffer[0] == 0x96 && size == ESP_BD_ADDR_LEN + 1) {
         esp_bd_addr_t bytes;
         uint16_t port = 0;
 
         for (size_t i = 0; i < ESP_BD_ADDR_LEN; i++)
         {
-            bytes[i] = (uint8_t)data[i + 1];
+            bytes[i] = buffer[i + 1];
         }
 
         BTAddress address(bytes);
@@ -164,18 +187,16 @@ void TcpInput::parse(void *parameter) {
     }
 
     // recognize a raw statement and pass it into Output handlers
-    if (data[0] == 0x01) {
-        BaseInput::forward(data, size);
-        BaseOutput::forward(data, size);
+    if (buffer[0] == 0x01 && buffer[size - 1] == 0x02) {
+        BaseInput::forward(buffer, size);
+        BaseOutput::forward(buffer, size);
     }
-    
-    vTaskDelete(NULL);
 }
 
 /**
  * helper for sending data back to the clients
 */
-void TcpInput::write(const uint8_t *data, size_t size) {
+void TcpInput::write(const uint8_t *buffer, size_t size) {
     for (size_t i = 0; i < TCP_MAX; i++)
     {
         AsyncClient* client = tcpClients[i];
@@ -183,7 +204,7 @@ void TcpInput::write(const uint8_t *data, size_t size) {
 
         if (client->space() > size && client->canSend())
         {
-            client->add((const char *)data, size);
+            client->add((const char *)buffer, size);
             client->send();
         }
     }

@@ -24,9 +24,10 @@
             static void disconnect(void *arg, AsyncClient *client);
         
         private:
-            inline static TaskHandle_t parsePacketHandle;
+            inline static QueueHandle_t parsePacketQueue = NULL;
             
-            static void parse(void *parameter);
-            static void write(const uint8_t *data, size_t size);
+            static void queue();
+            static void parse(const uint8_t *buffer, size_t size);
+            static void write(const uint8_t *buffer, size_t size);
     };
 #endif

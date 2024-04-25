@@ -12,7 +12,7 @@
  * setup functionality
 */
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   
   BluetoothHandler::setup();
   WifiHandler::setup();

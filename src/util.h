@@ -5,7 +5,7 @@
     #include "Arduino.h"
 
     typedef struct {
-        const uint8_t *data;
+        uint8_t data[CONFIG_LWIP_TCP_MSS];
         size_t size;
     } data_packet_t;
 

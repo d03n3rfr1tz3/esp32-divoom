@@ -15,9 +15,7 @@
             static void advertise(const uint8_t* address, const char* name, size_t size);
         
         private:
-            inline static TaskHandle_t parsePacketHandle;
-            
-            static void parse(void *parameter);
+            static void parse(char *buffer, size_t size);
             static void write(const char* direction, const uint8_t *buffer, size_t size);
     };
 #endif
