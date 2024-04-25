@@ -25,8 +25,9 @@
         
         private:
             inline static QueueHandle_t parsePacketQueue = NULL;
+            inline static TaskHandle_t parsePacketHandle = NULL;
             
-            static void queue();
+            static void queue(void *parameter);
             static void parse(const uint8_t *buffer, size_t size);
             static void write(const uint8_t *buffer, size_t size);
     };

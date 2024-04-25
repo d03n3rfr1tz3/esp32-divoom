@@ -15,13 +15,14 @@ void TcpInput::setup() {
     tcpServer.begin();
 
     parsePacketQueue = xQueueCreate(10, sizeof(data_packet_t));
+    xTaskCreatePinnedToCore(queue, "ParsePacketTask", 4096, NULL, 1, &parsePacketHandle, 1);
 }
 
 /**
  * loop functionality
 */
 void TcpInput::loop() {
-    TcpInput::queue();
+    // no additional handling needed
 }
 
 /**
@@ -125,24 +126,27 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
 /**
  * the queue handler
 */
-void TcpInput::queue() {
+void TcpInput::queue(void *parameter) {
     //TODO: if there are multiple packets (like for a GIF), get all packets and split them into 210 byte pieces. currently only the first packet gets split, which breaks bigger GIFs
-    //TODO: only split into 210 byte pieces, if it can be parsed as a frame. otherwise pass it through unchanged to make single images work
 
-    data_packet_t dataPacket;
-    if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)10) == pdPASS) {
-        size_t off = 0;
-        size_t max = 210;
-        size_t len = dataPacket.size;
-        uint8_t *buffer = dataPacket.data;
+    while (true) {
+        data_packet_t dataPacket;
+        if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)10) == pdPASS) {
+            size_t off = 0;
+            size_t maxImage = 274;
+            size_t maxAnimation = 210;
+            size_t len = dataPacket.size;
+            uint8_t *buffer = dataPacket.data;
 
-        while (len > 0) {
-            size_t use = len > max ? max : len;
-            TcpInput::parse(buffer, use);
-            
-            off += use;
-            buffer += use;
-            len = dataPacket.size - off;
+            while (len > 0) {
+                size_t max = buffer[0] == 0x01 && buffer[3] == 0x49 ? maxAnimation : maxImage;
+                size_t use = len > max ? max : len;
+                TcpInput::parse(buffer, use);
+                
+                off += use;
+                buffer += use;
+                len = dataPacket.size - off;
+            }
         }
     }
 }
