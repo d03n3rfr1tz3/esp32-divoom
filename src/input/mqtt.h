@@ -8,6 +8,7 @@
 
     class MqttInput {
         public:
+            MqttInput();
             static void setup();
             static void loop();
             static bool check();

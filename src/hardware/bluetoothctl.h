@@ -10,6 +10,7 @@
 
     class BluetoothHandler {
         public:
+            BluetoothHandler();
             static void setup(void);
             static void loop(void);
             static bool check(bool fast);

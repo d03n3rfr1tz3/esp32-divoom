@@ -5,6 +5,10 @@
 #include "input/base.h"
 #include "output/base.h"
 
+BluetoothHandler::BluetoothHandler() {
+    timer = millis();
+}
+
 /**
  * setup functionality
 */

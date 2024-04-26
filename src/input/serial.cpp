@@ -4,6 +4,8 @@
 #include "input/base.h"
 #include "output/base.h"
 
+#include "divoom/divoom.h"
+
 HardwareSerial serialIn(0);
 
 /**
@@ -17,9 +19,9 @@ void SerialInput::setup() {
  * loop functionality
 */
 void SerialInput::loop() {
-    char buffer[128];
+    char buffer[256];
     while (serialIn.available()) {
-        size_t size = serialIn.readBytesUntil('\n', buffer, 128);
+        size_t size = serialIn.readBytesUntil('\n', buffer, 256);
         if (buffer[size - 1] == '\r') size -= sizeof(char);
         buffer[size] = '\0';
 
@@ -78,7 +80,7 @@ void SerialInput::advertise(const uint8_t* address, const char* name, size_t siz
 void SerialInput::parse(char *buffer, size_t size) {
     
     // recognize a connect statement and pass it into Bluetooth handler
-    if (strncmp("CONNECT ", (const char*)buffer, strlen("CONNECT ")) == 0) {
+    if (size > strlen("CONNECT ") && strncmp("CONNECT ", (const char*)buffer, strlen("CONNECT ")) == 0) {
         size_t offset = strlen("CONNECT ") * sizeof(uint8_t);
         char* content = buffer + offset;
         size -= offset;
@@ -103,7 +105,7 @@ void SerialInput::parse(char *buffer, size_t size) {
     }
 
     // recognize a disconnect statement and pass it into Bluetooth handler
-    if (strncmp("DISCONNECT ", (const char*)buffer, strlen("DISCONNECT ")) == 0) {
+    if (size > strlen("DISCONNECT ") && strncmp("DISCONNECT ", (const char*)buffer, strlen("DISCONNECT ")) == 0) {
         size_t offset = strlen("DISCONNECT ") * sizeof(uint8_t);
         char* content = buffer + offset;
         size -= offset;
@@ -124,16 +126,24 @@ void SerialInput::parse(char *buffer, size_t size) {
     }
 
     // recognize a mode statement and pass it into Divoom handler
-    if (strncmp("MODE ", (const char*)buffer, strlen("MODE ")) == 0) {
+    if (size > strlen("MODE ") && strncmp("MODE ", (const char*)buffer, strlen("MODE ")) == 0) {
         size_t offset = strlen("MODE ") * sizeof(uint8_t);
         char* content = buffer + offset;
         size -= offset;
 
-        //TODO: Pass the parsed content into divoom.h functions
+        Divoom divoom = Divoom();
+        data_commands_t *commands = divoom.parseMode(content, size);
+
+        for (size_t i = 0; i < commands->count; i++)
+        {
+            data_command_t command = commands->command[i];
+            BaseInput::forward(command.data, command.size);
+            BaseOutput::forward(command.data, command.size);
+        }
     }
 
     // recognize a raw statement and pass it into Output handlers
-    if (strncmp("SEND ", (const char*)buffer, strlen("SEND ")) == 0) {
+    if (size > strlen("SEND ") && strncmp("SEND ", (const char*)buffer, strlen("SEND ")) == 0) {
         size_t offset = strlen("SEND ") * sizeof(uint8_t);
         char* content = buffer + offset;
         size -= offset;
