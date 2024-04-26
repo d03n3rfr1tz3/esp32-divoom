@@ -13,21 +13,40 @@ in the documentation below.
 * **MQTT**
 
 ## Table of Contents
+* [Requirements](#requirements)
 * [Installation](#installation)
-  + [Flashing](#flashing)
-  + [Configuration](#configuration)
-* [Documentation](#documentation)
+  + [Easy Installation](#easy-installation)
+  + [Manual Installation](#manual-installation)
+* [Configuration](#configuration)
+  + [Easy Configuration](#easy-configuration)
+  + [Manual Configuration](#manual-configuration)
+* [Usage](#usage)
   + [Serial](#serial)
   + [TCP](#tcp)
   + [MQTT](#mqtt)
   + [MODE Commands](#mode-commands)
+    - [MODE brightness](#mode-brightness)
+    - [MODE volume](#mode-volume)
+    - [MODE keyboard](#mode-keyboard)
+    - [MODE playstate](#mode-playstate)
+    - [MODE weather](#mode-weather)
+* [Troubleshooting](#troubleshooting)
+  + [Cannot connect](#cannot-connect)
+  + [GIF does not work](#gif-does-not-work)
+
+## Requirements
+
+This firmware obviously needs an ESP32. Other then that, not much is needed, as the ESP32 already brings WiFi and Bluetooth with it.
 
 ## Installation
 
-### Flashing
+### Easy Installation
+
+In the future I might use [ESP Web Tools](https://esphome.github.io/esp-web-tools/) for an easier installation process. For now, you have to go for the manual installation.
+
+### Manual Installation
 
 This firmware is a PlatformIO project. Until I can find and prepare a more easy way for you to get started, you have to just download the source code and build and upload it to an ESP32 via VS Code yourself.
-In the future I might use [ESP Web Tools](https://esphome.github.io/esp-web-tools/) for an easier installation process.
 
 * Download the repository. If you know git, a clone is fine. If not, just download https://github.com/d03n3rfr1tz3/esp32-divoom/archive/main.zip to get the most recent code in a ZIP file.
 * Copy the corresponding content of the ZIP file into a directory of your choice
@@ -37,9 +56,15 @@ In the future I might use [ESP Web Tools](https://esphome.github.io/esp-web-tool
 * ...
 * Profit
 
-### Configuration
+## Configuration
 
-Currently you need to configure directly in your own `config_local.h` in the firmware before flashing. This might change in the future.
+### Easy Configuration
+
+Well again, currently there is no easy way, but that might change in the future.
+
+### Manual Configuration
+
+Currently you need to configure the firmware directly in your own `config_local.h` before flashing. This might change in the future.
 
 The default configuration `config.h` has a lot of empty values you very likely want to fill. To not run into problems with later updates,
 I recommend you to create a `config_local.h` with your own values. Here is an example:
@@ -69,7 +94,7 @@ I recommend you to create a `config_local.h` with your own values. Here is an ex
 
 Notice the undefining of each value before defining it with my own value. That way you don't get ugly warnings from the compiler later. 😉
 
-## Documentation
+## Usage
 
 ### Serial
 
@@ -163,17 +188,6 @@ Here you can find a full list of MODE commands that are supported as well as som
 MODE brightness 100
 ```
 
-#### MODE volume
-
-`MODE volume value`
-| Parameter | Description |
-| ---       | ---         |
-| value     | The volume value between 0 and 100. |
-
-```
-MODE volume 100
-```
-
 #### MODE keyboard
 
 `MODE keyboard value`
@@ -196,6 +210,17 @@ MODE keyboard 0
 MODE playstate 0
 ```
 
+#### MODE volume
+
+`MODE volume value`
+| Parameter | Description |
+| ---       | ---         |
+| value     | The volume value between 0 and 100. |
+
+```
+MODE volume 100
+```
+
 #### MODE weather
 
 `MODE weather temperature weather`
@@ -207,3 +232,17 @@ MODE playstate 0
 ```
 MODE weather 25°C 1
 ```
+
+## Troubleshooting
+### Cannot connect
+Make sure, that your Phone is not currently connected to your Divoom device, because some don't allow that many connections.
+
+If it seems to connect, but looses connection the moment you use any mode, you might have chosen the wrong port. On Pixoo and other non-audio
+devices, it's typically port `1`. But on audio devices, like the Tivoo or Ditoo, it might be port `2`.
+
+### GIF does not work
+
+The most common problem is, that the GIF does not have the correct size or format. The Divoom devices (and to some extend my code) are nitpicky in that case. Strangly enough the Divoom app lets you download GIFs, but these are typically in the size of 320x320 and not fitting your device.
+Your GIF needs to be exactly the size of your Divoom screen (*16x16* in case of a Pixoo or similar sized device), *non-interlaced* and with a *global color palette*.
+
+I can recommend resizing and converting your GIFs with GIMP. Of course other software might also work, depending on the export/format options. When resizing a GIF downloaded from the Divoom app with GIMP, you better choose no interpolation to not blur your GIF. When exporting with GIMP, make sure to mark the animation checkbox and don't mark the interlace checkbox. For a few more details and an example look into the following comment: https://github.com/d03n3rfr1tz3/hass-divoom/issues/19#issuecomment-1982059358
