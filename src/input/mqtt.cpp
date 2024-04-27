@@ -203,6 +203,7 @@ void MqttInput::parse(char* topic, uint8_t* payload, size_t size) {
 
         for (size_t i = 0; i < commands->count; i++)
         {
+            if (i > 0) sleep(25);
             data_command_t command = commands->command[i];
             BaseInput::forward(command.data, command.size);
             BaseOutput::forward(command.data, command.size);
