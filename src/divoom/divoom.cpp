@@ -332,10 +332,6 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
             }
         }
 
-        Serial.println(date);
-        Serial.println(time);
-        Serial.println(text);
-
         show_memorial(value, date, time, text, true);
     }
 
