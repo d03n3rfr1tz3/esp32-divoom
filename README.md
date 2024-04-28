@@ -13,26 +13,42 @@ in the documentation below.
 * **MQTT**
 
 ## Table of Contents
-* [Requirements](#requirements)
-* [Installation](#installation)
-  + [Easy Installation](#easy-installation)
-  + [Manual Installation](#manual-installation)
-* [Configuration](#configuration)
-  + [Easy Configuration](#easy-configuration)
-  + [Manual Configuration](#manual-configuration)
-* [Usage](#usage)
-  + [Serial](#serial)
-  + [TCP](#tcp)
-  + [MQTT](#mqtt)
-  + [MODE Commands](#mode-commands)
-    - [MODE brightness](#mode-brightness)
-    - [MODE volume](#mode-volume)
-    - [MODE keyboard](#mode-keyboard)
-    - [MODE playstate](#mode-playstate)
-    - [MODE weather](#mode-weather)
-* [Troubleshooting](#troubleshooting)
-  + [Cannot connect](#cannot-connect)
-  + [GIF does not work](#gif-does-not-work)
+  * [Requirements](#requirements)
+  * [Installation](#installation)
+    + [Easy Installation](#easy-installation)
+    + [Manual Installation](#manual-installation)
+  * [Configuration](#configuration)
+    + [Easy Configuration](#easy-configuration)
+    + [Manual Configuration](#manual-configuration)
+  * [Usage](#usage)
+    + [Serial](#serial)
+    + [TCP](#tcp)
+    + [MQTT](#mqtt)
+    + [MODE Commands](#mode-commands)
+      - [MODE alarm](#mode-alarm)
+      - [MODE brightness](#mode-brightness)
+      - [MODE clock](#mode-clock)
+      - [MODE countdown](#mode-countdown)
+      - [MODE datetime](#mode-datetime)
+      - [MODE design](#mode-design)
+      - [MODE effects](#mode-effects)
+      - [MODE game](#mode-game)
+      - [MODE gamecontrol](#mode-gamecontrol)
+      - [MODE keyboard](#mode-keyboard)
+      - [MODE light](#mode-light)
+      - [MODE lyrics](#mode-lyrics)
+      - [MODE memorial](#mode-memorial)
+      - [MODE noise](#mode-noise)
+      - [MODE playstate](#mode-playstate)
+      - [MODE radio](#mode-radio)
+      - [MODE scoreboard](#mode-scoreboard)
+      - [MODE timer](#mode-timer)
+      - [MODE visualization](#mode-visualization)
+      - [MODE volume](#mode-volume)
+      - [MODE weather](#mode-weather)
+  * [Troubleshooting](#troubleshooting)
+    + [Cannot connect](#cannot-connect)
+    + [GIF does not work](#gif-does-not-work)
 
 ## Requirements
 
@@ -177,57 +193,275 @@ MODE brightness 100
 Here you can find a full list of MODE commands that are supported as well as some descriptions and examples. If you are coming from my
 [Home Assistant integration](https://github.com/d03n3rfr1tz3/hass-divoom), you probably will notice a few similarities.
 
-#### MODE brightness
+#### MODE alarm
+Sets an alarm. You might have to experiment with the options your Divoom device supports and what it actually changes. Unsupported values will be ignored or if possible directly zeroed by this component, to prevent strange behavior.
 
-`MODE brightness value`
+`MODE alarm [number] [time] [weekdays] [alarmmode] [triggermode] [frequency] [volume]`
 | Parameter | Description |
 | ---       | ---         |
-| value | The brightness value between 0 and 100. |
+| `number`  | The concrete slot for the alarm. For the actual amount of slots you might have to look into the phone app. |
+| `time`    | The concrete time for when the alarm should happen in the format `mm:ss`. |
+| `weekdays` | The list of `0` and `1` for each weekday starting with sunday. Example: `1000001` for weekend only alarm. |
+| `alarmmode` | The alarm mode. Look into your phone app for what is supported by your Divoom device. |
+| `triggermode` | The trigger mode. Look into your phone app for what is supported by your Divoom device. |
+| `frequency` | The radio frequency to set. |
+| `volume`  | The volume of the alarm. |
+
+```
+MODE alarm 1 07:30 0111110 0 0 85.1 100
+```
+
+#### MODE brightness
+Sets the brightness.
+
+`MODE brightness [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value`   | The brightness value between 0 and 100. |
 
 ```
 MODE brightness 100
 ```
 
-#### MODE keyboard
+#### MODE clock
+Shows the clock channel.
 
-`MODE keyboard value`
+`MODE clock [clock] [twentyfour] [weather] [temp] [calendar] [color] [hot]`
 | Parameter | Description |
 | ---       | ---         |
-| value     | `0` = toggle keyboard light on/off, `1` = switch to next keyboard light mode, `-1` = switch to previous keyboard light mode |
+| `clock`   | The style of the clock. Accepts a number between 0 and 9. <br/> `0` = Fullscreen, `1` = Rainbow, `2` = Boxed, `3` = Analog square, <br/> `4` = Fullscreen negative, `5` = Analog round, `6` = Widescreen |
+| `twentyfour` | Changes between 12h or 24h format. <br/> `0` = 12h, `1` = 24h. Defaults to 24h. |
+| `weather` | Actives or deactivates showing the weather with `0` or `1`. |
+| `temp`    | Actives or deactivates showing the temperature with `0` or `1`. |
+| `calendar` | Actives or deactivates showing the calendar date with `0` or `1`. |
+| `color`   | The color of the clock in the typical RGB HEX format. Example: `FF0000` for red. |
+| `hot`     | Actives or deactivates showing the slideshow of the best images with `0` or `1`, which is right next to the other boolean-like buttons in the app, but a completely separate command in the protocol |
+
+```
+MODE clock 1 1 1 1 1 FF0000 1
+```
+
+#### MODE countdown
+Shows the countdown tool.
+
+`MODE countdown [value] [countdown]`
+| Parameter | Description |
+| ---       | ---         |
+| `value`   | Controls the start/stop state. <br/> `0` = stop, `1` = start |
+| `countdown` | The concrete countdown in the format `mm:ss`. |
+
+```
+MODE countdown 1 02:30
+```
+
+#### MODE datetime
+Sets the datetime.
+
+`MODE datetime [date] [time]`
+| Parameter | Description |
+| ---       | ---         |
+| `date`    | The date in typical ISO format. |
+| `time`    | The time in typical ISO format. |
+
+```
+MODE datetime 2020-12-24 20:15:00
+```
+
+#### MODE design
+Shows the design channel.
+
+`MODE design [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value`   | The number of the concrete design. Ranging from 0-2 you can specify the design 1-3. |
+
+```
+MODE design 0
+```
+
+#### MODE effects
+Shows the effects channel.
+
+`MODE effects [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value`   | The number of the concrete effect. Might differ for some Divoom devices. Look into your phone app and count them. |
+
+```
+MODE effects 1
+```
+
+#### MODE game
+Shows a game. It is theoretically possible to open games, that are not shown in your phone app, but they might not work very well.
+
+`MODE game [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value` | The number of the concrete game. Depending on your device you may have different amount of games. Look into your phone app and count them. |
+
+```
+MODE game 1
+```
+
+#### MODE gamecontrol
+Sends controlling commands to the currently open game.
+
+`MODE gamecontrol [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value` | `0` or `go` = go, <br/> `1` or `left` = left, <br/> `2` or `right` = right, <br/> `3` or `up` = up, <br/> `4` or `bottom` = bottom, <br/> `5` or `ok` = ok |
+
+```
+MODE gamecontrol 0
+```
+
+#### MODE keyboard
+Controls the keyboard LEDs specifically on the Ditoo.
+
+`MODE keyboard [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value`   | `0` = toggle keyboard light on/off, `1` = switch to next effect, `-1` = switch to previous effect |
 
 ```
 MODE keyboard 0
 ```
 
-#### MODE playstate
+#### MODE light
+Shows the light channel.
 
-`MODE playstate value`
+`MODE light [color] [brightness] [power]`
 | Parameter | Description |
 | ---       | ---         |
-| value     | `0` = pause, `1` = play |
+| `color`   | The color of the clock in the typical RGB HEX format. Example: `FF0000` for red. |
+| `brightness` | The brightness value between 0 and 100. |
+| `power`   | Activates or deactivates powering the LED panel. |
+
+```
+MODE light FF0000 100 1
+```
+
+#### MODE lyrics
+Shows the lyrics channel. Might not be supported by every Divoom device.
+
+`MODE lyrics`
+| Parameter | Description |
+| ---       | ---         |
+
+```
+MODE lyrics
+```
+
+#### MODE memorial
+Sets a memorial (reminder).
+
+`MODE memorial [number] [date] [time] [text]`
+| Parameter | Description |
+| ---       | ---         |
+| `number`  | The concrete slot for the memorial. For the actual amount of slots you might have to look into the phone app. |
+| `date`    | The date in typical ISO format. The year will be ignored. |
+| `time`    | The time in typical ISO format. The seconds will be ignored. |
+| `text`    | Specifies the name of your memorial, as it will appear in the phone app (default: ESP32). |
+
+```
+MODE memorial 1 2020-12-31 59:59:59 Happy New Year!
+```
+
+#### MODE noise
+Shows the noise meter.
+
+`MODE noise [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value`   | Controls the start/stop state. <br/> `0` = stop, `1` = start |
+
+```
+MODE noise 1
+```
+
+#### MODE playstate
+Sets the playstate for the currently played music. Only supported by Divoom devices with audio features.
+
+`MODE playstate [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value`   | `0` = pause, `1` = play |
 
 ```
 MODE playstate 0
 ```
 
-#### MODE volume
+#### MODE radio
+Shows and plays the radio channel. Only supported by Divoom devices with the radio feature.
 
-`MODE volume value`
+`MODE radio [value] [frequency]`
 | Parameter | Description |
 | ---       | ---         |
-| value     | The volume value between 0 and 100. |
+| `value` | Controls the on/off state. <br/> `0` = off, `1` = on |
+| `frequency` | The radio frequency to set. |
+
+```
+MODE radio 1 85.1
+```
+
+#### MODE scoreboard
+Shows the scoreboard channel or tool.
+
+`MODE scoreboard [version] [player1] [player2]`
+| Parameter | Description |
+| ---       | ---         |
+| `version` | The version to use. Depending on the age of your Divoom device, you might have to use `0` or `1`. If you used `0` and it opens the lyrics channel, you need to use `1`. <br/> `0` = Opens the scoreboard channel. `1` = Opens the scoreboard tool. |
+| `player1` | The score of player one to show. |
+| `player2` | The score of player two to show. |
+
+```
+MODE scoreboard 0 1 2
+```
+
+#### MODE timer
+Shows the timer tool.
+
+`MODE timer [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value`   | Controls the start/stop state. <br/> `0` = stop, `1` = start |
+
+```
+MODE timer 1
+```
+
+#### MODE visualization
+Shows the visualization channel.
+
+`MODE visualization [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value`   | The number of the concrete visualization. Might differ for some Divoom devices. Look into your phone app and count them. |
+
+```
+MODE visualization 1
+```
+
+#### MODE volume
+Sets the volume. Only supported by Divoom devices with audio features.
+
+`MODE volume [value]`
+| Parameter | Description |
+| ---       | ---         |
+| `value`   | The volume value between 0 and 100. |
 
 ```
 MODE volume 100
 ```
 
 #### MODE weather
+Sets the weather.
 
-`MODE weather temperature weather`
+`MODE weather [temperature] [weather]`
 | Parameter | Description |
 | ---       | ---         |
-| temperature | The temperature in degree including the temperature type for celsius or fahrenheit. |
-| weather | `1` = clear, `3` = cloudy sky, `5` = thunderstorm, `6` = rain, `8` = snow, `9` = fog |
+| `temperature` | The temperature in degree including the temperature type for celsius or fahrenheit. |
+| `weather` | `1` = clear, `3` = cloudy sky, `5` = thunderstorm, `6` = rain, `8` = snow, `9` = fog |
 
 ```
 MODE weather 25°C 1

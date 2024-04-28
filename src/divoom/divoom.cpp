@@ -210,10 +210,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         show_scoreboard(version, player1, player2);
     }
 
-    if (size > strlen("lyrics") && strncmp("lyrics ", (const char*)buffer, strlen("lyrics ")) == 0) {
-        size_t offset = strlen("lyrics ") * sizeof(uint8_t);
-        char* content = buffer + offset;
-        size -= offset;
+    if (size > strlen("lyrics") && strncmp("lyrics", (const char*)buffer, strlen("lyrics")) == 0) {
 
         show_lyrics();
     }
@@ -311,8 +308,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         uint8_t value = 0;
         char* date = nullptr;
         char* time = nullptr;
-        char* text = nullptr;
-        bool animate = 0;
+        char text[17] = { '\0' };
 
         char *token = strtok(NULL, " ");
         if (token != NULL) value = strtoul(token, NULL, 10);
@@ -324,12 +320,14 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         if (token != NULL) time = token;
 
         token = strtok(NULL, " ");
-        if (token != NULL) text = token;
+        if (token != NULL)  {
+            for (size_t i = 0; i < 16; i++) {
+                if (token[i] == '\0') break;
+                text[i] = token[i];
+            }
+        }
 
-        token = strtok(NULL, " ");
-        if (token != NULL) animate = strtoul(token, NULL, 10);
-
-        show_memorial(value, date, time, text, animate);
+        show_memorial(value, date, time, text, true);
     }
 
     if (size > strlen("radio") && strncmp("radio ", (const char*)buffer, strlen("radio ")) == 0) {
