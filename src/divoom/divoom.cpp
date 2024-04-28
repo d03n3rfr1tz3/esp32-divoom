@@ -86,7 +86,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         char *token = strtok(content, " ");
         if (token != NULL) date = token;
 
-        token = strtok(content, " ");
+        token = strtok(NULL, " ");
         if (token != NULL) time = token;
 
         send_datetime(date, time);
@@ -105,7 +105,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         char* color = nullptr;
         int8_t hot = 0;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) clock = strtoul(token, NULL, 10);
 
         token = strtok(NULL, " ");
@@ -138,7 +138,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         uint8_t brightness = 0;
         bool power = 0;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) color = token;
 
         token = strtok(NULL, " ");
@@ -157,7 +157,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
 
         uint8_t value = 0;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) value = strtoul(token, NULL, 10);
 
         show_effects(value);
@@ -170,7 +170,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
 
         uint8_t value = 0;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) value = strtoul(token, NULL, 10);
 
         show_visualization(value);
@@ -183,7 +183,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
 
         int8_t value = -1;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) value = strtol(token, NULL, 10);
 
         show_design(value);
@@ -198,7 +198,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         uint8_t player1 = 0;
         uint8_t player2 = 0;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) version = strtoul(token, NULL, 10);
 
         token = strtok(NULL, " ");
@@ -210,7 +210,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         show_scoreboard(version, player1, player2);
     }
 
-    if (size > strlen("lyrics") && strncmp("lyrics", (const char*)buffer, strlen("lyrics")) == 0) {
+    if (size >= strlen("lyrics") && strncmp("lyrics", (const char*)buffer, strlen("lyrics")) == 0) {
 
         show_lyrics();
     }
@@ -223,7 +223,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         bool value = 0;
         char* countdown = nullptr;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) value = strtoul(token, NULL, 10);
 
         token = strtok(NULL, " ");
@@ -239,7 +239,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
 
         bool value = 0;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) value = strtoul(token, NULL, 10);
 
         show_noise(value);
@@ -252,7 +252,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
 
         uint8_t value = 0;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) value = strtoul(token, NULL, 10);
 
         show_timer(value);
@@ -271,7 +271,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         float frequency = 0;
         uint8_t volume = 0;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) value = strtoul(token, NULL, 10);
 
         token = strtok(NULL, " ");
@@ -310,7 +310,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         char* time = nullptr;
         char text[17] = { '\0' };
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) value = strtoul(token, NULL, 10);
 
         token = strtok(NULL, " ");
@@ -321,11 +321,20 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
 
         token = strtok(NULL, " ");
         if (token != NULL)  {
+            bool split = false;
             for (size_t i = 0; i < 16; i++) {
-                if (token[i] == '\0') break;
-                text[i] = token[i];
+                char chr = token[i];
+                if (split && chr == '\0') break;
+                if (!split && chr == '\0') {
+                    split = true;
+                    text[i] = ' ';
+                } else text[i] = chr;
             }
         }
+
+        Serial.println(date);
+        Serial.println(time);
+        Serial.println(text);
 
         show_memorial(value, date, time, text, true);
     }
@@ -338,7 +347,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         bool value = 0;
         float frequency = 0;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) value = strtoul(token, NULL, 10);
 
         token = strtok(NULL, " ");
@@ -367,7 +376,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
 
         uint8_t value = 0;
 
-        char *token = strtok(NULL, " ");
+        char *token = strtok(content, " ");
         if (token != NULL) value = strtoul(token, NULL, 10);
 
         send_gamecontrol(value);
@@ -619,9 +628,10 @@ void Divoom::show_light(char* color, uint8_t brightness, bool power) {
     buffer[index++] = 0x01; // light view
     
     if (color != nullptr) { // color
-        buffer[index++] = color[0];
-        buffer[index++] = color[1];
-        buffer[index++] = color[2];
+        uint32_t colorLong = strtoul(color, NULL, 16);
+        buffer[index++] = (colorLong >> 16 & 0xFF);
+        buffer[index++] = (colorLong >> 8 & 0xFF);
+        buffer[index++] = (colorLong & 0xFF);
     } else {
         buffer[index++] = 0xFF;
         buffer[index++] = 0xFF;
@@ -801,7 +811,7 @@ void Divoom::show_timer(uint8_t value) {
 */
 void Divoom::show_alarm(uint8_t value, char* time, bool* weekdays, uint8_t alarm, uint8_t trigger, float frequency, uint8_t volume) {
     size_t index = 0;
-    uint8_t buffer[8];
+    uint8_t buffer[16];
 
     buffer[index++] = 0x43; // set alarm
     buffer[index++] = value; // alarm slot
@@ -858,7 +868,7 @@ void Divoom::show_alarm(uint8_t value, char* time, bool* weekdays, uint8_t alarm
 */
 void Divoom::show_memorial(uint8_t value, char* date, char* time, char* text, bool animate) {
     size_t index = 0;
-    uint8_t buffer[8];
+    uint8_t buffer[48];
 
     buffer[index++] = 0x54; // set memorial
     buffer[index++] = value; // memorial slot
@@ -887,7 +897,7 @@ void Divoom::show_memorial(uint8_t value, char* date, char* time, char* text, bo
     if (text == nullptr) text = (char*)"ESP32\0";
     for (size_t i = 0; i < 16; i++) // name of memorial
     {
-        end = text[i] == '\0';
+        if (text[i] == '\0') end = true;
         uint16_t chr = end ? '\0' : text[i];
         buffer[index++] = (chr & 0xff);
         buffer[index++] = (chr >> 8);

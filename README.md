@@ -361,7 +361,7 @@ Sets a memorial (reminder).
 | `number`  | The concrete slot for the memorial. For the actual amount of slots you might have to look into the phone app. |
 | `date`    | The date in typical ISO format. The year will be ignored. |
 | `time`    | The time in typical ISO format. The seconds will be ignored. |
-| `text`    | Specifies the name of your memorial, as it will appear in the phone app (default: ESP32). |
+| `text`    | Specifies the name of your memorial, as it will appear in the phone app (default: ESP32). Limited to 16 characters. |
 
 ```
 MODE memorial 1 2020-12-31 59:59:59 Happy New Year!
