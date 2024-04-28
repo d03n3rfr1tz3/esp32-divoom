@@ -167,6 +167,8 @@ This disconnect from your Divoom device. The packet starts with a single byte `0
 
 You can also control your Divoom devices via MQTT as well as getting a few states. This is variant you probably will use, when you are going for the standalone mode. The actual commands are similar to the Serial input. Additionally the general state will be published to `MQTT_TOPIC/proxy`, the bluetooth connection state to `MQTT_TOPIC/bluetooth` and advertise bluetooth devices to `MQTT_TOPIC/advertise/[MAC]` while `[MAC]` stands for the actual MAC address like `01:12:23:45:56:67`.
 
+Commands should be sent to the topic `MQTT_TOPIC/command`. For the `MQTT_TOPIC` part, you have to look into your `config_local.h`. Default is `divoom/`, which makes the command topic `divoom/command`.
+
 This command connects to your Divoom device with the MAC address `01:12:23:45:56:67` and on port `1`.
 ````
 CONNECT 01:12:23:45:56:67 1
