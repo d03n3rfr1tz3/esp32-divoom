@@ -15,7 +15,7 @@
 
     /* TCP Configuration */
     #define TCP_PORT         7777
-    #define TCP_MAX          5
+    #define TCP_MAX          3
 
     /* MQTT Configuration */
     #define MQTT_CLIENT      "ESP32-Divoom"

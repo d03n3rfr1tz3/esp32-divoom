@@ -134,15 +134,15 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         char* content = buffer + offset;
         size -= offset;
 
-        char* color = nullptr;
         uint8_t brightness = 0;
-        bool power = 0;
+        char* color = nullptr;
+        bool power = 1;
 
         char *token = strtok(content, " ");
-        if (token != NULL) color = token;
+        if (token != NULL) brightness = strtoul(token, NULL, 10);
 
         token = strtok(NULL, " ");
-        if (token != NULL) brightness = strtoul(token, NULL, 10);
+        if (token != NULL) color = token;
 
         token = strtok(NULL, " ");
         if (token != NULL) power = strtoul(token, NULL, 10);
@@ -635,7 +635,7 @@ void Divoom::show_light(char* color, uint8_t brightness, bool power) {
     }
     
     buffer[index++] = brightness; // brightness
-    buffer[index++] = color != nullptr ? 0x01 : 0x00; // effect mode
+    buffer[index++] = color == nullptr ? 0x01 : 0x00; // effect mode
     buffer[index++] = power ? 0x01 : 0x00; // power on/off
     
     command(&(commands.command[commands.count++]), buffer, index);
@@ -707,11 +707,11 @@ void Divoom::show_scoreboard(uint8_t version, uint16_t player1, uint16_t player2
         buffer[index++] = 0x06; // scoreboard view
         buffer[index++] = 0x00;
         
-        buffer[index++] = (player1 & 0xff); // player1
-        buffer[index++] = (player1 >> 8); // player1
-        
         buffer[index++] = (player2 & 0xff); // player2
         buffer[index++] = (player2 >> 8); // player2
+        
+        buffer[index++] = (player1 & 0xff); // player1
+        buffer[index++] = (player1 >> 8); // player1
         
         command(&(commands.command[commands.count++]), buffer, index);
     }
@@ -724,11 +724,11 @@ void Divoom::show_scoreboard(uint8_t version, uint16_t player1, uint16_t player2
         buffer[index++] = 0x01; // scoreboard tool
         buffer[index++] = 0x01; // show it
         
-        buffer[index++] = (player1 & 0xff); // player1
-        buffer[index++] = (player1 >> 8); // player1
-        
         buffer[index++] = (player2 & 0xff); // player2
         buffer[index++] = (player2 >> 8); // player2
+        
+        buffer[index++] = (player1 & 0xff); // player1
+        buffer[index++] = (player1 >> 8); // player1
         
         command(&(commands.command[commands.count++]), buffer, index);
     }

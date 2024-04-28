@@ -102,10 +102,6 @@ void WifiHandler::connected(WiFiEvent_t event, WiFiEventInfo_t info) {
 
     MDNS.begin(WIFI_NAME);
     MDNS.addService("_divoom_esp32", "_tcp", TCP_PORT);
-
-    if (MqttInput::check()) {
-        MqttInput::update();
-    }
 }
 
 /**

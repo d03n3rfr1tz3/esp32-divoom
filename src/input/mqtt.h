@@ -21,6 +21,7 @@
         
         private:
             inline static bool isConnected;
+            inline static bool wasWifiConnected;
             inline static unsigned long timer;
 
             static void parse(char* topic, uint8_t* payload, size_t size);

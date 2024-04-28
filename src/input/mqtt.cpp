@@ -33,7 +33,9 @@ void MqttInput::setup() {
 void MqttInput::loop() {
     if (strlen(MQTT_HOST) == 0) return;
 
-    if (getElapsed(timer) > 10000) {
+    bool isWifiConnected = WifiHandler::check(true);
+    if (getElapsed(timer) > 15000 || (isWifiConnected && !wasWifiConnected)) {
+        wasWifiConnected = isWifiConnected;
         timer = millis();
 
         if (check()) {
@@ -49,6 +51,7 @@ void MqttInput::loop() {
 */
 bool MqttInput::check(void) {
     if (strlen(MQTT_HOST) == 0) return false;
+    if (!wasWifiConnected) return false;
 
     if (mqttClient.connected())
     {
@@ -81,6 +84,7 @@ bool MqttInput::check(void) {
 */
 void MqttInput::update(void) {
     if (strlen(MQTT_HOST) == 0) return;
+    if (!isConnected) return;
 
     char topicState[strlen(MQTT_TOPIC) + strlen("proxy")];
     snprintf(topicState, sizeof( topicState ), MQTT_TOPIC, "proxy");

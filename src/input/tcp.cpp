@@ -14,7 +14,7 @@ void TcpInput::setup() {
     tcpServer.onClient(connection, &tcpServer);
     tcpServer.begin();
 
-    parsePacketQueue = xQueueCreate(10, sizeof(data_packet_t));
+    parsePacketQueue = xQueueCreate(5, sizeof(data_packet_t));
     xTaskCreatePinnedToCore(queue, "ParsePacketTask", 4096, NULL, 1, &parsePacketHandle, 1);
 }
 
