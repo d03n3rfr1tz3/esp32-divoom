@@ -128,11 +128,11 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
 */
 void TcpInput::queue(void *parameter) {
     size_t previousSize = 0;
-    uint8_t previousBuffer[210];
+    uint8_t previousBuffer[210] = { 0x00 };
 
     while (true) {
         data_packet_t dataPacket;
-        if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)10) == pdPASS) {
+        if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)25) == pdPASS) {
             size_t off = 0;
             size_t maxImage = 274;
             size_t maxAnimation = 210;
@@ -149,7 +149,7 @@ void TcpInput::queue(void *parameter) {
 
                 // copy rest of the current buffer into previous buffer
                 if (previousSize > 0) {
-                    memcpy(previousBuffer, buffer, use - previousSize);
+                    memcpy(previousBuffer + previousSize, buffer, use - previousSize);
                 }
 
                 // parse and process packet
