@@ -895,8 +895,8 @@ void Divoom::show_memorial(uint8_t value, char* date, char* time, char* text, bo
     {
         if (text[i] == '\0') end = true;
         uint16_t chr = end ? '\0' : text[i];
-        buffer[index++] = (chr & 0xff);
         buffer[index++] = (chr >> 8);
+        buffer[index++] = (chr & 0xff);
     }
 
     command(&(commands.command[commands.count++]), buffer, index);
