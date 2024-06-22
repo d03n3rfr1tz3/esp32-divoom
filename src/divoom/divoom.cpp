@@ -352,6 +352,43 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         show_radio(value, frequency);
     }
 
+    if (size > strlen("sleep") && strncmp("sleep ", (const char*)buffer, strlen("sleep ")) == 0) {
+        size_t offset = strlen("sleep ") * sizeof(uint8_t);
+        char* content = buffer + offset;
+        size -= offset;
+
+        bool value = 0;
+        uint8_t sleeptime = 0;
+        uint8_t sleepmode = 0;
+        float frequency = 0;
+        uint8_t volume = 0;
+        char* color = nullptr;
+        uint8_t brightness = 0;
+
+        char *token = strtok(content, " ");
+        if (token != NULL) value = strtoul(token, NULL, 10);
+
+        token = strtok(NULL, " ");
+        if (token != NULL) sleeptime = strtoul(token, NULL, 10);
+
+        token = strtok(NULL, " ");
+        if (token != NULL) sleepmode = strtoul(token, NULL, 10);
+
+        token = strtok(NULL, " ");
+        if (token != NULL) frequency = strtof(token, NULL);
+
+        token = strtok(NULL, " ");
+        if (token != NULL) volume = strtoul(token, NULL, 10);
+
+        token = strtok(NULL, " ");
+        if (token != NULL) color = token;
+
+        token = strtok(NULL, " ");
+        if (token != NULL) brightness = strtoul(token, NULL, 10);
+
+        show_sleep(value, sleeptime, sleepmode, frequency, volume, color, brightness);
+    }
+
     if (size > strlen("game") && strncmp("game ", (const char*)buffer, strlen("game ")) == 0) {
         size_t offset = strlen("game ") * sizeof(uint8_t);
         char* content = buffer + offset;
@@ -933,6 +970,45 @@ void Divoom::show_radio(bool value, float frequency) {
         
         command(&(commands.command[commands.count++]), buffer, index);
     }
+}
+
+/**
+ * shows the sleep mode
+*/
+void Divoom::show_sleep(bool value, uint8_t sleeptime, uint8_t sleepmode, float frequency, uint8_t volume, char* color, uint8_t brightness) {
+    size_t index = 0;
+    uint8_t buffer[4];
+
+    buffer[index++] = 0x40; // set radio
+    buffer[index++] = sleeptime; // sleep time in minutes
+    buffer[index++] = sleepmode; // sleep mode
+    buffer[index++] = value ? 0x01 : 0x00; // on/off
+
+    uint16_t freq = frequency * 10;
+    if (freq > 1000) { // frequency
+        buffer[index++] = (uint8_t)(freq - 1000);
+        buffer[index++] = (uint8_t)(freq / 100);
+    } else {
+        buffer[index++] = (uint8_t)(freq % 100);
+        buffer[index++] = (uint8_t)(freq / 100);
+    }
+    
+    buffer[index++] = volume; // volume
+    
+    if (color != nullptr) { // color
+        uint32_t colorLong = strtoul(color, NULL, 16);
+        buffer[index++] = (colorLong >> 16 & 0xFF);
+        buffer[index++] = (colorLong >> 8 & 0xFF);
+        buffer[index++] = (colorLong & 0xFF);
+    } else {
+        buffer[index++] = 0x00;
+        buffer[index++] = 0x00;
+        buffer[index++] = 0x00;
+    }
+    
+    buffer[index++] = brightness; // brightness
+
+    command(&(commands.command[commands.count++]), buffer, index);
 }
 
 /**

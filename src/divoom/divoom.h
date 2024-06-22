@@ -40,6 +40,7 @@
             void show_alarm(uint8_t value, char* time, bool* weekdays, uint8_t alarm, uint8_t trigger, float frequency, uint8_t volume);
             void show_memorial(uint8_t value, char* date, char* time, char* text, bool animate);
             void show_radio(bool value, float frequency);
+            void show_sleep(bool value, uint8_t sleeptime, uint8_t sleepmode, float frequency, uint8_t volume, char* color, uint8_t brightness);
             void show_game(int8_t value);
             void send_gamecontrol(uint8_t value);
         

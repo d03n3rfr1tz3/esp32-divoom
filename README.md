@@ -419,6 +419,23 @@ Shows the scoreboard channel or tool.
 MODE scoreboard 0 1 2
 ```
 
+#### MODE sleep
+Shows the sleep mode, which plays soothing sounds, optionally with a timer and light.
+
+| Parameter    | Description |
+| ---          | ---         |
+| `value`      | Controls the start/stop state. <br/> `0` = stop, `1` = start |
+| `time`       | The time in minutes after which to stop the sleep mode. |
+| `sleepmode`  | The sound effect to play. Check in the app how many options are available. Accepts a number. |
+| `frequency`  | The radio frequency to set. |
+| `volume`     | The volume value between 0 and 100. |
+| `color`      | The color of the display in the typical RGB HEX format. Example: `FF0000` for red. |
+| `brightness` | The brightness value between 0 and 100. |
+
+```
+MODE sleep 1 30 4 85.1 100 FF0000 100
+```
+
 #### MODE timer
 Shows the timer tool.
 
