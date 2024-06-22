@@ -92,7 +92,8 @@ void BluetoothHandler::discovered(BTAdvertisedDevice* device) {
 
     // check for supported names
     std::string name = device->getName();
-    if (name.find("Ditoo") == std::string::npos &&
+    if (name.find("Aurabox") == std::string::npos &&
+        name.find("Ditoo") == std::string::npos &&
         name.find("Pixoo") == std::string::npos &&
         name.find("Timebox") == std::string::npos &&
         name.find("Tivoo") == std::string::npos) return;
