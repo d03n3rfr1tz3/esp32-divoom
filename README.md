@@ -41,6 +41,7 @@ but you can also use it as standalone communicator for your Divoom devices. Curr
       - [MODE playstate](#mode-playstate)
       - [MODE radio](#mode-radio)
       - [MODE scoreboard](#mode-scoreboard)
+      - [MODE sleep](#mode-sleep)
       - [MODE timer](#mode-timer)
       - [MODE visualization](#mode-visualization)
       - [MODE volume](#mode-volume)
