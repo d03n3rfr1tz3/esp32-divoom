@@ -92,11 +92,12 @@ void BluetoothHandler::discovered(BTAdvertisedDevice* device) {
 
     // check for supported names
     std::string name = device->getName();
-    if (name.find("Aurabox") == std::string::npos &&
+    if (name.find("Aurabox") == std::string::npos && name.find("AuraBox") == std::string::npos &&
+        name.find("Timebox") == std::string::npos && name.find("TimeBox") == std::string::npos &&
         name.find("Ditoo") == std::string::npos &&
         name.find("Pixoo") == std::string::npos &&
-        name.find("Timebox") == std::string::npos &&
-        name.find("Tivoo") == std::string::npos) return;
+        name.find("Tivoo") == std::string::npos &&
+        name.find("Divoom") == std::string::npos) return;
 
     // pass it into zeroconf
     MDNS.addServiceTxt("_divoom_esp32", "_tcp", "device_mac", device->getAddress().toString().c_str());
