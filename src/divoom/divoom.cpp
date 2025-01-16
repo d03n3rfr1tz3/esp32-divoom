@@ -639,7 +639,7 @@ void Divoom::show_clock(uint8_t clock, bool twentyfour, bool weather, bool temp,
         command(&(commands.command[commands.count++]), buffer, index);
     }
 
-    if (hot > 0 && hot <= 1) {
+    if (hot >= 0 && hot <= 1) {
         size_t index = 0;
         uint8_t buffer[4];
 
@@ -977,7 +977,7 @@ void Divoom::show_radio(bool value, float frequency) {
 */
 void Divoom::show_sleep(bool value, uint8_t sleeptime, uint8_t sleepmode, float frequency, uint8_t volume, char* color, uint8_t brightness) {
     size_t index = 0;
-    uint8_t buffer[4];
+    uint8_t buffer[24];
 
     buffer[index++] = 0x40; // set radio
     buffer[index++] = sleeptime; // sleep time in minutes
