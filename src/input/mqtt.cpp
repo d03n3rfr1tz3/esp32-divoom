@@ -99,6 +99,9 @@ void MqttInput::update(void) {
  * the forward channel for a bluetooth connection
 */
 void MqttInput::forward(const char *address, uint16_t port) {
+    if (strlen(MQTT_HOST) == 0) return;
+    if (!isConnected) return;
+
     const char *payload = port > 0 ? "connecting" : "disconnected";
     char topicBluetooth[strlen(MQTT_TOPIC) + strlen("bluetooth")];
     snprintf(topicBluetooth, sizeof( topicBluetooth ), MQTT_TOPIC, "bluetooth");
@@ -116,6 +119,9 @@ void MqttInput::forward(const uint8_t *buffer, size_t size) {
  * the backward channel for bluetooth data
 */
 void MqttInput::backward(const uint8_t *buffer, size_t size) {
+    if (strlen(MQTT_HOST) == 0) return;
+    if (!isConnected) return;
+
     const char *payload = BluetoothHandler::check(true) ? "connected" : "disconnected";
     if (size == 1 && buffer[0] == 0x69) payload = "connecting";
     if (size == 1 && buffer[0] == 0x96) payload = "disconnected";
@@ -130,6 +136,9 @@ void MqttInput::backward(const uint8_t *buffer, size_t size) {
  * the channel for an advertised bluetooth device
 */
 void MqttInput::advertise(const uint8_t* address, const char* name, size_t size) {
+    if (strlen(MQTT_HOST) == 0) return;
+    if (!isConnected) return;
+    
     size_t j = 0;
     char topicAddress[strlen("advertise/") + 18 + 1];
     snprintf(topicAddress, sizeof( topicAddress ), "advertise/%02X:%02X:%02X:%02X:%02X:%02X", address[0], address[1], address[2], address[3], address[4], address[5]);

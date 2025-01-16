@@ -21,6 +21,7 @@
             static void connection(void *arg, AsyncClient *client);
             static void data(void *arg, AsyncClient *client, void *data, size_t size);
             static void timeout(void *arg, AsyncClient *client, uint32_t time);
+            static void error(void *arg, AsyncClient *client, int8_t error);
             static void disconnect(void *arg, AsyncClient *client);
         
         private:

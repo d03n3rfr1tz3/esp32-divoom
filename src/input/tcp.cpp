@@ -76,6 +76,7 @@ void TcpInput::connection(void *arg, AsyncClient *client) {
 	client->onData(&data, NULL);
 	client->onDisconnect(&disconnect, NULL);
 	client->onTimeout(&timeout, NULL);
+    client->onError(&error, NULL);
 
     for (size_t i = 0; i < TCP_MAX; i++)
     {
@@ -104,7 +105,20 @@ void TcpInput::timeout(void *arg, AsyncClient *client, uint32_t time) {
 	for (size_t i = 0; i < TCP_MAX; i++)
     {
         if (tcpClients[i] != client) continue;
-        tcpClients[i]->close();
+        tcpClients[i]->abort();
+        tcpClients[i] = nullptr;
+        break;
+    }
+}
+
+/**
+ * callback for when a client error happens
+*/
+void TcpInput::error(void *arg, AsyncClient *client, int8_t error) {
+	for (size_t i = 0; i < TCP_MAX; i++)
+    {
+        if (tcpClients[i] != client) continue;
+        tcpClients[i]->close(true);
         tcpClients[i] = nullptr;
         break;
     }
