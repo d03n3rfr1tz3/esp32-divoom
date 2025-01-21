@@ -33,7 +33,7 @@ void BluetoothHandler::loop(void) {
  * background task for handling connection state and discovery
 */
 void BluetoothHandler::task(void *parameter) {
-    if (serialBT.connected(2500)) {
+    if (serialBT.connected(5000)) {
         isConnected = true;
         isConnecting = false;
     } else {
@@ -63,7 +63,8 @@ bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *
     delay(10);
     
     isConnecting = true;
-    return serialBT.connect(address, channel);
+    isConnected = serialBT.connect(address, channel);
+    return isConnected;
 }
 
 /**
@@ -79,7 +80,7 @@ bool BluetoothHandler::disconnect(void) {
  * discover bluetooth devices
 */
 void BluetoothHandler::discover(void) {
-    BTScanResults* devices = serialBT.discover(2500);
+    BTScanResults* devices = serialBT.discover(7500);
     if (devices == nullptr) {
         // We have to restart the ESP, because it seems there is no way to get advertising going again after connecting once.
         // This is quite an old bug, that was never fixed and IMO is a major oversight.

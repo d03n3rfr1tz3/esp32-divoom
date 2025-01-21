@@ -36,6 +36,7 @@ void MqttInput::loop() {
 
     bool isWifiConnected = WifiHandler::check(true);
     if (getElapsed(timer) > 15000 || (isWifiConnected && !wasWifiConnected)) {
+        if (!isWifiConnected) isConnected = false;
         wasWifiConnected = isWifiConnected;
         timer = millis();
 
@@ -52,6 +53,7 @@ void MqttInput::loop() {
 */
 bool MqttInput::check(void) {
     if (strlen(MQTT_HOST) == 0) return false;
+    if (!wasWifiConnected) return false;
 
     if (mqttClient.connected())
     {
