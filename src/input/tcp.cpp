@@ -49,7 +49,9 @@ void TcpInput::backward(const uint8_t *buffer, size_t size) {
 /**
  * the channel for an advertised bluetooth device
 */
-void TcpInput::advertise(const uint8_t* address, const char* name, size_t size) {
+void TcpInput::advertise(const uint8_t* address, const char* name, size_t size, bool supported) {
+    if (!supported) return;
+    
     size_t index = 0;
     size_t length = ESP_BD_ADDR_LEN + size + 2;
     uint8_t buffer[length];

@@ -16,7 +16,7 @@
             static void forward(const char *address, uint16_t port);
             static void forward(const uint8_t *buffer, size_t size);
             static void backward(const uint8_t *buffer, size_t size);
-            static void advertise(const uint8_t* address, const char* name, size_t size);
+            static void advertise(const uint8_t* address, const char* name, size_t size, bool supported);
 
             static void connection(void *arg, AsyncClient *client);
             static void data(void *arg, AsyncClient *client, void *data, size_t size);

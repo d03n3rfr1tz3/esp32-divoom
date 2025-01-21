@@ -25,6 +25,7 @@ void MqttInput::setup() {
 
     mqttClient.setServer(MQTT_HOST, MQTT_PORT);
     mqttClient.setCallback(parse);
+    mqttClient.setKeepAlive(10);
 }
 
 /**
@@ -51,7 +52,6 @@ void MqttInput::loop() {
 */
 bool MqttInput::check(void) {
     if (strlen(MQTT_HOST) == 0) return false;
-    if (!wasWifiConnected) return false;
 
     if (mqttClient.connected())
     {
@@ -64,7 +64,6 @@ bool MqttInput::check(void) {
         
         char topicState[strlen(MQTT_TOPIC) + strlen("proxy")];
         snprintf(topicState, sizeof( topicState ), MQTT_TOPIC, "proxy");
-        mqttClient.publish(topicState, "online", true);
         
         isConnected = mqttClient.connect(MQTT_CLIENT, MQTT_USER, MQTT_PASS, topicState, 1, true, "offline");
         if (isConnected) {
@@ -92,7 +91,7 @@ void MqttInput::update(void) {
 
     char topicBluetooth[strlen(MQTT_TOPIC) + strlen("bluetooth")];
     snprintf(topicBluetooth, sizeof( topicBluetooth ), MQTT_TOPIC, "bluetooth");
-    mqttClient.publish(topicBluetooth, BluetoothHandler::check(true) ? "connected" : "disconnected", false);
+    mqttClient.publish(topicBluetooth, BluetoothHandler::check() ? "connected" : "disconnected", false);
 }
 
 /**
@@ -122,7 +121,7 @@ void MqttInput::backward(const uint8_t *buffer, size_t size) {
     if (strlen(MQTT_HOST) == 0) return;
     if (!isConnected) return;
 
-    const char *payload = BluetoothHandler::check(true) ? "connected" : "disconnected";
+    const char *payload = BluetoothHandler::check() ? "connected" : "disconnected";
     if (size == 1 && buffer[0] == 0x69) payload = "connecting";
     if (size == 1 && buffer[0] == 0x96) payload = "disconnected";
     if (size > 2 && buffer[0] == 0x01 && buffer[size - 1] == 0x02) payload = "connected";
@@ -135,7 +134,7 @@ void MqttInput::backward(const uint8_t *buffer, size_t size) {
 /**
  * the channel for an advertised bluetooth device
 */
-void MqttInput::advertise(const uint8_t* address, const char* name, size_t size) {
+void MqttInput::advertise(const uint8_t* address, const char* name, size_t size, bool supported) {
     if (strlen(MQTT_HOST) == 0) return;
     if (!isConnected) return;
     

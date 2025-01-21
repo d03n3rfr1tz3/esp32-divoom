@@ -16,6 +16,6 @@
             static void forward(const char *address, uint16_t port);
             static void forward(const uint8_t *buffer, size_t size);
             static void backward(const uint8_t *buffer, size_t size);
-            static void advertise(const uint8_t* address, const char* name, size_t size);
+            static void advertise(const uint8_t* address, const char* name, size_t size, bool supported);
     };
 #endif

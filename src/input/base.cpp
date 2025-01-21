@@ -49,8 +49,8 @@ void BaseInput::backward(const uint8_t *buffer, size_t size) {
 /**
  * the channel for an advertised bluetooth device
 */
-void BaseInput::advertise(const uint8_t* address, const char* name, size_t size) {
-    TcpInput::advertise(address, name, size);
-    MqttInput::advertise(address, name, size);
-    SerialInput::advertise(address, name, size);
+void BaseInput::advertise(const uint8_t* address, const char* name, size_t size, bool supported) {
+    TcpInput::advertise(address, name, size, supported);
+    MqttInput::advertise(address, name, size, supported);
+    SerialInput::advertise(address, name, size, supported);
 }

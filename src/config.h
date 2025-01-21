@@ -3,6 +3,7 @@
     
     /* Bluetooth Configuration */
     #define BLUETOOTH_NAME   "ESP32-Divoom"
+    #define BLUETOOTH_FILTER true
 
     /* WiFi Configuration */
     #define WIFI_NAME        "ESP32-Divoom"

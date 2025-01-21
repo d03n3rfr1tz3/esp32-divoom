@@ -15,9 +15,7 @@ BluetoothHandler::BluetoothHandler() {
 void BluetoothHandler::setup(void) {
     serialBT.begin(BLUETOOTH_NAME, true);
     serialBT.setTimeout(5000);
-
     serialBT.register_callback(event);
-    isScanning = serialBT.discoverAsync(discovered, 500);
 }
 
 /**
@@ -27,35 +25,32 @@ void BluetoothHandler::loop(void) {
     if (getElapsed(timer) > 10000) {
         timer = millis();
 
-        check(false);
+        xTaskCreatePinnedToCore(BluetoothHandler::task, "BluetoothTask", 5000, NULL, 1, &discoverHandle, 1);
     }
 }
 
 /**
- * checks connection and scanning state and keeps background tasks up
+ * background task for handling connection state and discovery
 */
-bool BluetoothHandler::check(bool fast) {
-    if (fast) return isConnected;
-    
-    if (!isScanning && serialBT.connected(2500)) {
+void BluetoothHandler::task(void *parameter) {
+    if (serialBT.connected(2500)) {
         isConnected = true;
         isConnecting = false;
-        return true;
     } else {
         isConnected = false;
         isConnecting = false;
 
-        if (isScanning) {
-            serialBT.discoverAsyncStop();
-            serialBT.discoverClear();
-            isScanning = false;
-        } else {
-            serialBT.register_callback(event);
-            isScanning = serialBT.discoverAsync(discovered, 2500);
-        }
-
-        return false;
+        BluetoothHandler::discover();
     }
+    
+    vTaskDelete(NULL);
+}
+
+/**
+ * checks connection state
+*/
+bool BluetoothHandler::check(void) {
+    return isConnected;
 }
 
 /**
@@ -63,10 +58,6 @@ bool BluetoothHandler::check(bool fast) {
 */
 bool BluetoothHandler::connect(BTAddress address, uint16_t channel) { return connect(address, channel, nullptr); };
 bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *pin) {
-    serialBT.discoverAsyncStop();
-    serialBT.discoverClear();
-    isScanning = false;
-    
     if (isConnected) BluetoothHandler::disconnect();
     if (pin != nullptr) serialBT.setPin(pin);
     delay(10);
@@ -85,26 +76,39 @@ bool BluetoothHandler::disconnect(void) {
 }
 
 /**
- * callback for when a bluetooth device was discovered
+ * discover bluetooth devices
 */
-void BluetoothHandler::discovered(BTAdvertisedDevice* device) {
-    if (!device->haveName()) return;
+void BluetoothHandler::discover(void) {
+    BTScanResults* devices = serialBT.discover(2500);
+    if (devices == nullptr) {
+        // We have to restart the ESP, because it seems there is no way to get advertising going again after connecting once.
+        // This is quite an old bug, that was never fixed and IMO is a major oversight.
+        ESP.restart();
+    }
 
-    // check for supported names
-    std::string name = device->getName();
-    if (name.find("Aurabox") == std::string::npos && name.find("AuraBox") == std::string::npos &&
-        name.find("Timebox") == std::string::npos && name.find("TimeBox") == std::string::npos &&
-        name.find("Ditoo") == std::string::npos &&
-        name.find("Pixoo") == std::string::npos &&
-        name.find("Tivoo") == std::string::npos &&
-        name.find("Divoom") == std::string::npos) return;
+    for (int i = 0; i < devices->getCount(); i++) {
+        BTAdvertisedDevice* device = devices->getDevice(i);
 
-    // pass it into zeroconf
-    MDNS.addServiceTxt("_divoom_esp32", "_tcp", "device_mac", device->getAddress().toString().c_str());
-    MDNS.addServiceTxt("_divoom_esp32", "_tcp", "device_name", name.c_str());
+        // check for supported names
+        bool supported = device->haveName();
+        std::string name = device->haveName() ? device->getName() : "Unknown";
+        if (name.find("Aurabox") == std::string::npos && name.find("AuraBox") == std::string::npos &&
+            name.find("Timebox") == std::string::npos && name.find("TimeBox") == std::string::npos &&
+            name.find("Ditoo") == std::string::npos &&
+            name.find("Pixoo") == std::string::npos &&
+            name.find("Tivoo") == std::string::npos &&
+            name.find("Divoom") == std::string::npos) supported = false;
+        if (BLUETOOTH_FILTER && !supported) continue;
 
-    // pass it into the input handlers for an advertise announcement
-    BaseInput::advertise((const uint8_t*)device->getAddress().getNative(), name.c_str(), name.size());
+        // pass it into zeroconf
+        if (supported) {
+            MDNS.addServiceTxt("_divoom_esp32", "_tcp", "device_mac", device->getAddress().toString().c_str());
+            MDNS.addServiceTxt("_divoom_esp32", "_tcp", "device_name", name.c_str());
+        }
+
+        // pass it into the input handlers for an advertise announcement
+        BaseInput::advertise((const uint8_t*)device->getAddress().getNative(), name.c_str(), name.size(), supported);
+    }
 }
 
 /**

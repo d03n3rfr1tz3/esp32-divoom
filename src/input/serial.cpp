@@ -61,7 +61,7 @@ void SerialInput::backward(const uint8_t *buffer, size_t size) {
 /**
  * the channel for an advertised bluetooth device
 */
-void SerialInput::advertise(const uint8_t* address, const char* name, size_t size) {
+void SerialInput::advertise(const uint8_t* address, const char* name, size_t size, bool supported) {
     serialIn.print("ADVERTISE ");
     for (size_t i = 0; i < ESP_BD_ADDR_LEN; i++)
     {
@@ -71,7 +71,9 @@ void SerialInput::advertise(const uint8_t* address, const char* name, size_t siz
         serialIn.print(byte, HEX);
     }
     serialIn.print(" ");
-    serialIn.println(name);
+    serialIn.print(name);
+
+    serialIn.println(supported ? " (Divoom)" : " (Unknown)");
 }
 
 /**
