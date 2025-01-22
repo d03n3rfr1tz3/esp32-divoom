@@ -14,7 +14,7 @@ void TcpInput::setup() {
     tcpServer.onClient(connection, &tcpServer);
     tcpServer.begin();
 
-    parsePacketQueue = xQueueCreate(5, sizeof(data_packet_t));
+    parsePacketQueue = xQueueCreate(3, sizeof(data_packet_t));
     xTaskCreatePinnedToCore(queue, "ParsePacketTask", 4096, NULL, 1, &parsePacketHandle, 1);
 }
 
@@ -92,7 +92,6 @@ void TcpInput::connection(void *arg, AsyncClient *client) {
  * callback for when a client send data
 */
 void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
-
     data_packet_t dataPacket;
     dataPacket.size = size;
     memcpy(dataPacket.data, (uint8_t*)data, size);
@@ -109,6 +108,7 @@ void TcpInput::timeout(void *arg, AsyncClient *client, uint32_t time) {
         if (tcpClients[i] != client) continue;
         tcpClients[i]->abort();
         tcpClients[i] = nullptr;
+        delete client;
         break;
     }
 }
@@ -122,6 +122,7 @@ void TcpInput::error(void *arg, AsyncClient *client, int8_t error) {
         if (tcpClients[i] != client) continue;
         tcpClients[i]->close(true);
         tcpClients[i] = nullptr;
+        delete client;
         break;
     }
 }
@@ -135,6 +136,7 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
         if (tcpClients[i] != client) continue;
         tcpClients[i]->close();
         tcpClients[i] = nullptr;
+        delete client;
         break;
     }
 }
@@ -242,6 +244,7 @@ void TcpInput::write(const uint8_t *buffer, size_t size) {
     {
         AsyncClient* client = tcpClients[i];
         if (client == nullptr) continue;
+        if (client->connected() == false) continue;
 
         if (client->space() > size && client->canSend())
         {

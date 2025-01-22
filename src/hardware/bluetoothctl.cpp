@@ -25,7 +25,7 @@ void BluetoothHandler::loop(void) {
     if (getElapsed(timer) > 10000) {
         timer = millis();
 
-        xTaskCreatePinnedToCore(BluetoothHandler::task, "BluetoothTask", 5000, NULL, 1, &discoverHandle, 1);
+        xTaskCreatePinnedToCore(task, "BluetoothTask", 4096, NULL, 1, &discoverHandle, 1);
     }
 }
 
@@ -109,7 +109,10 @@ void BluetoothHandler::discover(void) {
 
         // pass it into the input handlers for an advertise announcement
         BaseInput::advertise((const uint8_t*)device->getAddress().getNative(), name.c_str(), name.size(), supported);
+        vTaskDelay(25 / portTICK_PERIOD_MS);
     }
+
+    serialBT.discoverClear();
 }
 
 /**
