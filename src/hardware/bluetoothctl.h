@@ -37,7 +37,7 @@
             inline static BluetoothSerial serialBT;
             inline static TaskHandle_t discoverHandle;
 
-            static void discover(void);
+            static void discover(int timeout);
             static void task(void *parameter);
             static void event(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
     };

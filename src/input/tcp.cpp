@@ -16,6 +16,7 @@ void TcpInput::setup() {
 
     parsePacketQueue = xQueueCreate(3, sizeof(data_packet_t));
     xTaskCreatePinnedToCore(queue, "ParsePacketTask", 4096, NULL, 1, &parsePacketHandle, 1);
+    esp_task_wdt_add(parsePacketHandle);
 }
 
 /**
@@ -187,6 +188,9 @@ void TcpInput::queue(void *parameter) {
                 }
             }
         }
+
+        esp_task_wdt_reset();
+        vTaskDelay(10);
     }
 }
 

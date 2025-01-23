@@ -3,8 +3,7 @@
     #define _INPUT_MQTT_H
 
     #include "Arduino.h"
-    #include "PubSubClient.h"
-    #include "WiFiClient.h"
+    #include "AsyncMqttClient.h"
 
     class MqttInput {
         public:
@@ -23,7 +22,13 @@
             inline static bool isConnected;
             inline static bool wasWifiConnected;
             inline static unsigned long timer;
+            inline static char topicState[64];
+            inline static char topicBluetooth[64];
+            inline static char topicCommand[64];
 
-            static void parse(char* topic, uint8_t* payload, size_t size);
+            static void connected(bool sessionPresent);
+            static void disconnected(AsyncMqttClientDisconnectReason reason);
+            static void message(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
+            static void parse(char* topic, char* payload, size_t size);
     };
 #endif

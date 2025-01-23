@@ -7,6 +7,7 @@
     
     #include "Arduino.h"
     #include "AsyncTCP.h"
+    #include "esp_task_wdt.h"
 
     class TcpInput {
         public:

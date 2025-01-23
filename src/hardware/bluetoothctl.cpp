@@ -25,7 +25,7 @@ void BluetoothHandler::loop(void) {
     if (getElapsed(timer) > 10000) {
         timer = millis();
 
-        xTaskCreatePinnedToCore(task, "BluetoothTask", 4096, NULL, 1, &discoverHandle, 1);
+        xTaskCreatePinnedToCore(task, "BluetoothTask", 2048, NULL, 1, &discoverHandle, 1);
     }
 }
 
@@ -40,7 +40,7 @@ void BluetoothHandler::task(void *parameter) {
         isConnected = false;
         isConnecting = false;
 
-        BluetoothHandler::discover();
+        BluetoothHandler::discover(7500);
     }
     
     vTaskDelete(NULL);
@@ -79,8 +79,8 @@ bool BluetoothHandler::disconnect(void) {
 /**
  * discover bluetooth devices
 */
-void BluetoothHandler::discover(void) {
-    BTScanResults* devices = serialBT.discover(7500);
+void BluetoothHandler::discover(int timeout) {
+    BTScanResults* devices = serialBT.discover(timeout);
     if (devices == nullptr) {
         // We have to restart the ESP, because it seems there is no way to get advertising going again after connecting once.
         // This is quite an old bug, that was never fixed and IMO is a major oversight.
