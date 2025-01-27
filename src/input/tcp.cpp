@@ -14,7 +14,7 @@ void TcpInput::setup() {
     tcpServer.onClient(connection, &tcpServer);
     tcpServer.begin();
 
-    parsePacketQueue = xQueueCreate(3, sizeof(data_packet_t));
+    parsePacketQueue = xQueueCreate(5, sizeof(data_packet_t*));
     xTaskCreatePinnedToCore(queue, "ParsePacketTask", 4096, NULL, 1, &parsePacketHandle, 1);
     esp_task_wdt_add(parsePacketHandle);
 }
@@ -93,11 +93,13 @@ void TcpInput::connection(void *arg, AsyncClient *client) {
  * callback for when a client send data
 */
 void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
-    data_packet_t dataPacket;
-    dataPacket.size = size;
-    memcpy(dataPacket.data, (uint8_t*)data, size);
+    data_packet_t* dataPacket = (data_packet_t*)MALLOC(sizeof(data_packet_t));
+    dataPacket->size = size;
+    memcpy(dataPacket->data, (uint8_t*)data, size);
 
-    xQueueSend(parsePacketQueue, (void*)&dataPacket, (TickType_t)10);
+    if (xQueueSend(parsePacketQueue, (void*)&dataPacket, (TickType_t)10) == errQUEUE_FULL) {
+        free(dataPacket);
+    }
 }
 
 /**
@@ -150,13 +152,13 @@ void TcpInput::queue(void *parameter) {
     uint8_t previousBuffer[210] = { 0x00 };
 
     while (true) {
-        data_packet_t dataPacket;
+        data_packet_t* dataPacket;
         if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)25) == pdPASS) {
             size_t off = 0;
             size_t maxImage = 274;
             size_t maxAnimation = 210;
-            size_t len = previousSize + dataPacket.size;
-            uint8_t *buffer = dataPacket.data;
+            size_t len = previousSize + dataPacket->size;
+            uint8_t *buffer = dataPacket->data;
 
             while (len > 0) {
                 // prepare packet
@@ -177,7 +179,7 @@ void TcpInput::queue(void *parameter) {
                 // move pointer and reduce open length
                 off += use - previousSize;
                 buffer += use - previousSize;
-                len = dataPacket.size - off;
+                len = dataPacket->size - off;
                 previousSize = 0;
 
                 // copy rest into separate buffer instead of sending incomplete data, if there is another message in the queue
@@ -187,6 +189,8 @@ void TcpInput::queue(void *parameter) {
                     break;
                 }
             }
+
+            free(dataPacket);
         }
 
         esp_task_wdt_reset();
