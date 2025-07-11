@@ -148,44 +148,55 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
  * the queue handler
 */
 void TcpInput::queue(void *parameter) {
+    size_t maxDefault = 274;
+    size_t maxAnimationPixoo = 210;
+    uint8_t posAnimationPixoo = maxAnimationPixoo - 1;
+    size_t maxAnimationPixooMax = 215;
+    uint8_t posAnimationPixooMax = maxAnimationPixooMax - 1;
+
     size_t previousSize = 0;
-    uint8_t previousBuffer[210] = { 0x00 };
+    uint8_t previousBuffer[maxDefault] = { 0x00 };
 
     while (true) {
         data_packet_t* dataPacket;
-        if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)25) == pdPASS) {
+        if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)10) == pdPASS) {
             size_t off = 0;
-            size_t maxImage = 274;
-            size_t maxAnimation = 210;
+            size_t max = maxDefault;
             size_t len = previousSize + dataPacket->size;
-            uint8_t *buffer = dataPacket->data;
+            uint8_t *packetBuffer = dataPacket->data;
 
+            // prepare packet split size, if necessary
+            uint8_t *startBuffer = previousSize > 0 ? previousBuffer : packetBuffer;
+            uint8_t *endBufferPixoo = previousSize > maxAnimationPixoo ? previousBuffer : packetBuffer;
+            uint8_t endPositionPixoo = previousSize > maxAnimationPixoo ? posAnimationPixoo : posAnimationPixoo - previousSize;
+            uint8_t *endBufferPixooMax = previousSize > maxAnimationPixooMax ? previousBuffer : packetBuffer;
+            uint8_t endPositionPixooMax = previousSize > maxAnimationPixooMax ? posAnimationPixooMax : posAnimationPixooMax - previousSize;
+            if (startBuffer[0] == 0x01 && startBuffer[3] == 0x49 && endBufferPixoo[endPositionPixoo] == 0x02) max = maxAnimationPixoo; // animation stream for Pixoo (or similar devices) detected. splitting accordingly
+            if (startBuffer[0] == 0x01 && startBuffer[3] == 0x49 && endBufferPixooMax[endPositionPixooMax] == 0x02) max = maxAnimationPixooMax; // animation stream for Pixoo Max detected. splitting accordingly
+
+            // split buffer into corresponding max size packets, to make sure animation stream sends every frame as a separate packet
             while (len > 0) {
+                size_t thisSize = 0;
+                uint8_t thisBuffer[max] = { 0x00 };
+
                 // prepare packet
-                uint8_t *packet = previousSize > 0 ? previousBuffer : buffer;
-
-                // split packet into corresponding max size, if necessary
-                size_t max = packet[0] == 0x01 && packet[3] == 0x49 ? maxAnimation : maxImage;
                 size_t use = len > max ? max : len;
-
-                // copy rest of the current buffer into previous buffer
-                if (previousSize > 0) {
-                    memcpy(previousBuffer + previousSize, buffer, use - previousSize);
-                }
+                if (previousSize > 0) memcpy(thisBuffer, previousBuffer, previousSize);
+                memcpy(thisBuffer + previousSize, packetBuffer, use - previousSize);
 
                 // parse and process packet
-                TcpInput::parse(packet, use);
+                TcpInput::parse(thisBuffer, use);
                 
                 // move pointer and reduce open length
                 off += use - previousSize;
-                buffer += use - previousSize;
+                packetBuffer += use - previousSize;
                 len = dataPacket->size - off;
                 previousSize = 0;
 
                 // copy rest into separate buffer instead of sending incomplete data, if there is another message in the queue
-                if (len <= max && uxQueueMessagesWaiting(parsePacketQueue) > 0) {
+                if (len <= max && packetBuffer[len - 1] != 0x02) {
                     previousSize = len;
-                    memcpy(previousBuffer, buffer, len);
+                    memcpy(previousBuffer, packetBuffer, len);
                     break;
                 }
             }
@@ -194,7 +205,7 @@ void TcpInput::queue(void *parameter) {
         }
 
         esp_task_wdt_reset();
-        vTaskDelay(10);
+        vTaskDelay(5);
     }
 }
 
