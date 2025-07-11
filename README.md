@@ -491,7 +491,7 @@ MODE weather 25°C 1
 Make sure, that your Phone is not currently connected to your Divoom device, because some don't allow that many connections.
 
 If it seems to connect, but looses connection the moment you use any mode, you might have chosen the wrong port. On Pixoo and other non-audio
-devices, it's typically port `1`. But on audio devices, like the Tivoo or Ditoo, it might be port `2`.
+devices, it's typically port `1`. But on audio devices, like the Timoo, Tivoo or Ditoo, it might be port `2`. Timebox Mini is also a special case with its port `4`.
 
 ### GIF does not work
 
