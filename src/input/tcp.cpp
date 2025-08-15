@@ -148,11 +148,8 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
  * the queue handler
 */
 void TcpInput::queue(void *parameter) {
-    size_t maxDefault = 274;
-    size_t maxAnimationPixoo = 210;
-    uint8_t posAnimationPixoo = maxAnimationPixoo - 1;
-    size_t maxAnimationPixooMax = 215;
-    uint8_t posAnimationPixooMax = maxAnimationPixooMax - 1;
+    size_t maxDefault = 1096;
+    size_t maxAnimations[] = {210, 213, 215};
 
     size_t previousSize = 0;
     uint8_t previousBuffer[maxDefault] = { 0x00 };
@@ -166,14 +163,14 @@ void TcpInput::queue(void *parameter) {
             uint8_t *packetBuffer = dataPacket->data;
 
             // prepare packet split size, if necessary
-            uint8_t *startBuffer = previousSize > 0 ? previousBuffer : packetBuffer;
-            uint8_t *endBufferPixoo = previousSize > maxAnimationPixoo ? previousBuffer : packetBuffer;
-            uint8_t endPositionPixoo = previousSize > maxAnimationPixoo ? posAnimationPixoo : posAnimationPixoo - previousSize;
-            uint8_t *endBufferPixooMax = previousSize > maxAnimationPixooMax ? previousBuffer : packetBuffer;
-            uint8_t endPositionPixooMax = previousSize > maxAnimationPixooMax ? posAnimationPixooMax : posAnimationPixooMax - previousSize;
-            if (startBuffer[0] == 0x01 && startBuffer[3] == 0x49 && endBufferPixoo[endPositionPixoo] == 0x02) max = maxAnimationPixoo; // animation stream for Pixoo (or similar devices) detected. splitting accordingly
-            if (startBuffer[0] == 0x01 && startBuffer[3] == 0x49 && endBufferPixooMax[endPositionPixooMax] == 0x02) max = maxAnimationPixooMax; // animation stream for Pixoo Max detected. splitting accordingly
-
+            for (size_t maxAnimation : maxAnimations) {
+                uint8_t posAnimation = maxAnimation - 1;
+                uint8_t *startBuffer = previousSize > 0 ? previousBuffer : packetBuffer;
+                uint8_t *endBuffer = previousSize > maxAnimation ? previousBuffer : packetBuffer;
+                uint8_t endPosition = previousSize > maxAnimation ? posAnimation : posAnimation - previousSize;
+                if (startBuffer[0] == 0x01 && startBuffer[3] == 0x49 && endBuffer[endPosition] == 0x02) max = maxAnimation; // animation stream detected. splitting accordingly
+            }
+            
             // split buffer into corresponding max size packets, to make sure animation stream sends every frame as a separate packet
             while (len > 0) {
                 size_t thisSize = 0;
