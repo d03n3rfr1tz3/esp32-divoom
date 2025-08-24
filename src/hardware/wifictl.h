@@ -18,6 +18,7 @@
 
         private:
             inline static bool isConnected;
+            inline static uint8_t retryCount;
             inline static unsigned long timer;
 
             static void scanned(WiFiEvent_t event, WiFiEventInfo_t info);

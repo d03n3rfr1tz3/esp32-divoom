@@ -7,6 +7,7 @@
 
     /* WiFi Configuration */
     #define WIFI_NAME        "ESP32-Divoom"
+    #define WIFI_RETRY       5
 
     #define WIFISSID1        ""
     #define WIFIPASS1        ""

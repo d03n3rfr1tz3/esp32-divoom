@@ -44,11 +44,13 @@ bool WifiHandler::check(bool fast) {
     if (WiFi.status() == WL_CONNECTED)
     {
         isConnected = true;
+        retryCount = 0;
         return true;
     }
     else
     {
         isConnected = false;
+        if (retryCount >= WIFI_RETRY) ESP.restart();
 
         int8_t wifiStatus = WiFi.status();
         int8_t scanStatus = WiFi.scanComplete();
@@ -57,6 +59,7 @@ bool WifiHandler::check(bool fast) {
              wifiStatus == WL_CONNECT_FAILED ||
              wifiStatus == WL_DISCONNECTED) && scanStatus != -1) {
             WiFi.scanNetworks(true, false, false, 2500);
+            retryCount++;
         }
 
         return WiFi.status() == WL_CONNECTED;
@@ -93,6 +96,7 @@ void WifiHandler::scanned(WiFiEvent_t event, WiFiEventInfo_t info) {
 */
 void WifiHandler::connected(WiFiEvent_t event, WiFiEventInfo_t info) {
     isConnected = true;
+    retryCount = 0;
 
     WiFi.setTxPower(WIFI_POWER_15dBm);
     WiFi.setAutoConnect(true);
