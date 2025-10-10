@@ -22,10 +22,11 @@ void BluetoothHandler::setup(void) {
  * loop functionality
 */
 void BluetoothHandler::loop(void) {
-    if (getElapsed(timer) > 10000) {
+    if (getElapsed(timer) > 15000) {
         timer = millis();
 
-        xTaskCreatePinnedToCore(task, "BluetoothTask", 2048, NULL, 1, &discoverHandle, 1);
+        BaseType_t taskResult = xTaskCreatePinnedToCore(task, "BluetoothTask", 2048, NULL, 1, &discoverHandle, 1);
+        if (taskResult != pdPASS) ESP.restart();
     }
 }
 

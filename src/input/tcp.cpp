@@ -15,7 +15,9 @@ void TcpInput::setup() {
     tcpServer.begin();
 
     parsePacketQueue = xQueueCreate(5, sizeof(data_packet_t*));
-    xTaskCreatePinnedToCore(queue, "ParsePacketTask", 4096, NULL, 1, &parsePacketHandle, 1);
+    
+    BaseType_t taskResult = xTaskCreatePinnedToCore(queue, "ParsePacketTask", 4096, NULL, 1, &parsePacketHandle, 1);
+    if (taskResult != pdPASS) ESP.restart();
     esp_task_wdt_add(parsePacketHandle);
 }
 
@@ -94,6 +96,8 @@ void TcpInput::connection(void *arg, AsyncClient *client) {
 */
 void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
     data_packet_t* dataPacket = (data_packet_t*)MALLOC(sizeof(data_packet_t));
+    if (!dataPacket) ESP.restart();
+
     dataPacket->size = size;
     memcpy(dataPacket->data, (uint8_t*)data, size);
 
