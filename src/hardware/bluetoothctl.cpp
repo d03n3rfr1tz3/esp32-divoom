@@ -14,7 +14,7 @@ BluetoothHandler::BluetoothHandler() {
 */
 void BluetoothHandler::setup(void) {
     serialBT.begin(BLUETOOTH_NAME, true);
-    serialBT.setTimeout(5000);
+    serialBT.setTimeout(1000);
     serialBT.register_callback(event);
 }
 

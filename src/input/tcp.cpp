@@ -83,12 +83,31 @@ void TcpInput::connection(void *arg, AsyncClient *client) {
 	client->onTimeout(&timeout, NULL);
     client->onError(&error, NULL);
 
+    int8_t index = -1;
     for (size_t i = 0; i < TCP_MAX; i++)
     {
         if (tcpClients[i] != nullptr) continue;
-        tcpClients[i] = client;
+        index = i;
         break;
     }
+
+    if (index < 0) index = TcpInput::clear();
+    tcpClients[index] = client;
+}
+
+/**
+ * clear all known client connections
+*/
+int8_t TcpInput::clear() {
+	for (size_t i = 0; i < TCP_MAX; i++)
+    {
+        if (tcpClients[i] != nullptr) continue;
+        AsyncClient *client = tcpClients[i];
+        tcpClients[i]->abort();
+        tcpClients[i] = nullptr;
+        delete client;
+    }
+    return 0;
 }
 
 /**
@@ -127,7 +146,7 @@ void TcpInput::error(void *arg, AsyncClient *client, int8_t error) {
 	for (size_t i = 0; i < TCP_MAX; i++)
     {
         if (tcpClients[i] != client) continue;
-        tcpClients[i]->close(true);
+        tcpClients[i]->abort();
         tcpClients[i] = nullptr;
         delete client;
         break;
