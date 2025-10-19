@@ -1,5 +1,9 @@
 #ifndef _CONFIG_H
     #define _CONFIG_H
+
+    #ifndef LED_BUILTIN
+        #define LED_BUILTIN  0
+    #endif
     
     /* Bluetooth Configuration */
     #define BLUETOOTH_NAME   "ESP32-Divoom"
@@ -17,7 +21,7 @@
 
     /* TCP Configuration */
     #define TCP_PORT         7777
-    #define TCP_MAX          5
+    #define TCP_MAX          3
 
     /* MQTT Configuration */
     #define MQTT_CLIENT      "ESP32-Divoom"

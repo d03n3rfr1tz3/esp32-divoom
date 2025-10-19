@@ -23,6 +23,7 @@
             inline static bool wasWifiConnected;
             inline static unsigned long timer;
             inline static char topicState[64];
+            inline static char topicHeap[64];
             inline static char topicBluetooth[64];
             inline static char topicCommand[64];
 

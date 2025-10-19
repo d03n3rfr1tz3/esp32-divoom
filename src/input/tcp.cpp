@@ -14,11 +14,10 @@ void TcpInput::setup() {
     tcpServer.onClient(connection, &tcpServer);
     tcpServer.begin();
 
-    parsePacketQueue = xQueueCreate(5, sizeof(data_packet_t*));
+    parsePacketQueue = xQueueCreate(3, sizeof(data_packet_t*));
     
-    BaseType_t taskResult = xTaskCreatePinnedToCore(queue, "ParsePacketTask", 4096, NULL, 1, &parsePacketHandle, 1);
+    BaseType_t taskResult = xTaskCreatePinnedToCore(queue, "ParsePacketTask", 5120, NULL, 1, &parsePacketHandle, 1);
     if (taskResult != pdPASS) ESP.restart();
-    esp_task_wdt_add(parsePacketHandle);
 }
 
 /**
@@ -120,7 +119,7 @@ void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
     dataPacket->size = size;
     memcpy(dataPacket->data, (uint8_t*)data, size);
 
-    if (xQueueSend(parsePacketQueue, (void*)&dataPacket, (TickType_t)10) == errQUEUE_FULL) {
+    if (xQueueSend(parsePacketQueue, (void*)&dataPacket, (TickType_t)25) == errQUEUE_FULL) {
         free(dataPacket);
     }
 }
@@ -171,15 +170,17 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
  * the queue handler
 */
 void TcpInput::queue(void *parameter) {
+    esp_task_wdt_add(NULL);
+
     size_t maxDefault = 1096;
     size_t maxAnimations[] = {210, 213, 215};
 
     size_t previousSize = 0;
     uint8_t previousBuffer[maxDefault] = { 0x00 };
 
-    while (true) {
+    for (;;) {
         data_packet_t* dataPacket;
-        if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)10) == pdPASS) {
+        if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)25) == pdPASS) {
             size_t off = 0;
             size_t max = maxDefault;
             size_t len = previousSize + dataPacket->size;
@@ -225,7 +226,7 @@ void TcpInput::queue(void *parameter) {
         }
 
         esp_task_wdt_reset();
-        vTaskDelay(5);
+        vTaskDelay(1);
     }
 }
 

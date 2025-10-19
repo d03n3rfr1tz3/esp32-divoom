@@ -23,6 +23,7 @@ void MqttInput::setup() {
     if (strlen(MQTT_HOST) == 0) return;
 
     snprintf(topicState, sizeof( topicState ), MQTT_TOPIC, "proxy");
+    snprintf(topicHeap, sizeof( topicHeap ), MQTT_TOPIC, "heap");
     snprintf(topicBluetooth, sizeof( topicBluetooth ), MQTT_TOPIC, "bluetooth");
     snprintf(topicCommand, sizeof( topicCommand ), MQTT_TOPIC, "command");
 
@@ -82,6 +83,10 @@ void MqttInput::update(void) {
     if (!isConnected) return;
 
     mqttClient.publish(topicBluetooth, 1, false, BluetoothHandler::check() ? "connected" : "disconnected");
+    
+    char heapPayload[22];
+    snprintf(heapPayload, sizeof(heapPayload), "%d/%d", ESP.getFreeHeap(), ESP.getHeapSize());
+    mqttClient.publish(topicHeap, 0, false, heapPayload);
 }
 
 /**
