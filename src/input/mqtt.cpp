@@ -82,6 +82,7 @@ void MqttInput::update(void) {
     if (strlen(MQTT_HOST) == 0) return;
     if (!isConnected) return;
 
+    mqttClient.publish(topicState, 1, true, "online");
     mqttClient.publish(topicBluetooth, 1, false, BluetoothHandler::check() ? "connected" : "disconnected");
     
     char heapPayload[22];
