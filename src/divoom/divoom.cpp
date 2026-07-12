@@ -538,19 +538,25 @@ void Divoom::send_playstate(bool value) {
  * sets the weather, temperature and temperature type
 */
 void Divoom::send_weather(char* value, uint8_t weather) {
+    bool isCelsius = value != nullptr && strstr(value, "°C") != nullptr;
+    bool isFahrenheit = value != nullptr && strstr(value, "°F") != nullptr;
+
     if (true) {
         size_t index = 0;
         uint8_t buffer[8];
 
+        double temp = value != nullptr ? strtod(value, NULL) : 0.0;
+        if (isFahrenheit) {
+            temp = (temp - 32) * 5 / 9;
+        }
+
         buffer[index++] = 0x5f; // set weather
-        buffer[index++] = value != nullptr ? (uint8_t)strtol(value, NULL, 10) : 0x00; // temp
+        buffer[index++] = (uint8_t)(int8_t)round(temp); // temp, always sent as Celsius
         buffer[index++] = weather; // weather
-        
+
         command(&(commands.command[commands.count++]), buffer, index);
     }
 
-    bool isCelsius = value != nullptr && strstr(value, "°C") != nullptr;
-    bool isFahrenheit = value != nullptr && strstr(value, "°F") != nullptr;
     if (isCelsius || isFahrenheit) {
         size_t index = 0;
         uint8_t buffer[4];
