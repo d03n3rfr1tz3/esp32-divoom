@@ -195,8 +195,8 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         size -= offset;
 
         uint8_t version = 0;
-        uint8_t player1 = 0;
-        uint8_t player2 = 0;
+        uint16_t player1 = 0;
+        uint16_t player2 = 0;
 
         char *token = strtok(content, " ");
         if (token != NULL) version = strtoul(token, NULL, 10);
@@ -623,7 +623,7 @@ void Divoom::show_clock(uint8_t clock, bool twentyfour, bool weather, bool temp,
         buffer[index++] = 0x00; // clock view
         buffer[index++] = twentyfour ? 0x01 : 0x00; // 12h or 24h format
         
-        if (clock >= 0 && clock <= 15) {
+        if (clock <= 15) {
             buffer[index++] = clock; // clock style
             buffer[index++] = 0x01; // clock on
         } else {

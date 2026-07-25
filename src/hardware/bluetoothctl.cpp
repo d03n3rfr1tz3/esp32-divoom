@@ -65,6 +65,7 @@ bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *
     
     isConnecting = true;
     isConnected = serialBT.connect(address, channel);
+    isConnecting = false;
     return isConnected;
 }
 
@@ -136,6 +137,7 @@ void BluetoothHandler::event(esp_spp_cb_event_t event, esp_spp_cb_param_t *param
             size_t available;
             uint8_t buffer[64];
             while (available = serialBT.available()) {
+                if (available > sizeof(buffer)) available = sizeof(buffer);
                 size_t size = serialBT.readBytes(buffer, available);
 
                 // pass it into the output handlers backward channel
