@@ -29,7 +29,7 @@ jobs:
         run: pip install --upgrade platformio
 
       - name: Build PlatformIO Project
-        run: pio run
+        run: pio run -e esp32dev
       - name: Archive ESP32 Firmware
         uses: actions/upload-artifact@v4
         with:
