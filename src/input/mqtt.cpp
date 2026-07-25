@@ -161,17 +161,23 @@ void MqttInput::disconnected(AsyncMqttClientDisconnectReason reason) {
  * onMessage event handler
 */
 void MqttInput::message(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
-    parse(topic, payload + index, len);
+    if (strcmp(topic, topicCommand) != 0) return;
+    if (total >= sizeof(messageBuffer) || index + len > total) return;
+
+    memcpy(messageBuffer + index, payload, len);
+    if (index + len < total) return;
+
+    messageBuffer[total] = '\0';
+    parse(topic, messageBuffer, total);
 }
 
 /**
  * the parser for incoming data
 */
 void MqttInput::parse(char* topic, char* payload, size_t size) {
-    if (strncmp(topic, topicCommand, strlen(topic)) != 0) return;
-    
+    if (strcmp(topic, topicCommand) != 0) return;
+
     char *buffer = payload;
-    buffer[size] = '\0';
 
     // recognize a connect statement and pass it into Bluetooth handler
     if (size > strlen("CONNECT ") && strncmp("CONNECT ", (const char*)buffer, strlen("CONNECT ")) == 0) {
@@ -180,11 +186,11 @@ void MqttInput::parse(char* topic, char* payload, size_t size) {
         size -= offset;
 
         size_t index = 0;
-        esp_bd_addr_t bytes;
+        esp_bd_addr_t bytes = { 0 };
         uint16_t port = 1;
 
         char *token = strtok(content, ":");
-        while (token != NULL) {
+        while (token != NULL && index < ESP_BD_ADDR_LEN) {
             bytes[index++] = strtoul(token, NULL, 16);
             token = strtok(NULL, ":");
         }
@@ -205,11 +211,11 @@ void MqttInput::parse(char* topic, char* payload, size_t size) {
         size -= offset;
 
         size_t index = 0;
-        esp_bd_addr_t bytes;
+        esp_bd_addr_t bytes = { 0 };
         uint16_t port = 0;
 
         char *token = strtok(content, ":");
-        while (token != NULL) {
+        while (token != NULL && index < ESP_BD_ADDR_LEN) {
             bytes[index++] = strtoul(token, NULL, 16);
             token = strtok(NULL, ":");
         }
@@ -244,10 +250,10 @@ void MqttInput::parse(char* topic, char* payload, size_t size) {
         size -= offset;
 
         size_t index = 0;
-        uint8_t bytes[size / 2];
+        uint8_t bytes[sizeof(data_command_t::data)];
 
         char *token = strtok(content, " ");
-        while (token != NULL) {
+        while (token != NULL && index < sizeof(bytes)) {
             bytes[index++] = strtoul(token, NULL, 16);
             token = strtok(NULL, " ");
         }

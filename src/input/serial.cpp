@@ -21,11 +21,12 @@ void SerialInput::setup() {
 void SerialInput::loop() {
     char buffer[256];
     while (serialIn.available()) {
-        size_t size = serialIn.readBytesUntil('\n', buffer, 256);
-        if (buffer[size - 1] == '\r') size -= sizeof(char);
-        buffer[size] = '\0';
+        size_t size = serialIn.readBytesUntil('\n', buffer, sizeof(buffer) - 1);
+        if (size > 0 && buffer[size - 1] == '\r') size -= sizeof(char);
+        if (size == 0) continue;
 
-        SerialInput::parse((char*)buffer, size);
+        buffer[size] = '\0';
+        SerialInput::parse(buffer, size);
     }
 }
 
@@ -88,11 +89,11 @@ void SerialInput::parse(char *buffer, size_t size) {
         size -= offset;
 
         size_t index = 0;
-        esp_bd_addr_t bytes;
+        esp_bd_addr_t bytes = { 0 };
         uint16_t port = 1;
 
         char *token = strtok(content, ":");
-        while (token != NULL) {
+        while (token != NULL && index < ESP_BD_ADDR_LEN) {
             bytes[index++] = strtoul(token, NULL, 16);
             token = strtok(NULL, ":");
         }
@@ -113,11 +114,11 @@ void SerialInput::parse(char *buffer, size_t size) {
         size -= offset;
 
         size_t index = 0;
-        esp_bd_addr_t bytes;
+        esp_bd_addr_t bytes = { 0 };
         uint16_t port = 0;
 
         char *token = strtok(content, ":");
-        while (token != NULL) {
+        while (token != NULL && index < ESP_BD_ADDR_LEN) {
             bytes[index++] = strtoul(token, NULL, 16);
             token = strtok(NULL, ":");
         }
@@ -152,10 +153,10 @@ void SerialInput::parse(char *buffer, size_t size) {
         size -= offset;
 
         size_t index = 0;
-        uint8_t bytes[size / 2];
+        uint8_t bytes[sizeof(data_command_t::data)];
 
         char *token = strtok(content, " ");
-        while (token != NULL) {
+        while (token != NULL && index < sizeof(bytes)) {
             bytes[index++] = strtoul(token, NULL, 16);
             token = strtok(NULL, " ");
         }

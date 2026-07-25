@@ -26,6 +26,7 @@
             inline static char topicHeap[64];
             inline static char topicBluetooth[64];
             inline static char topicCommand[64];
+            inline static char messageBuffer[1024];
 
             static void connected(bool sessionPresent);
             static void disconnected(AsyncMqttClientDisconnectReason reason);
