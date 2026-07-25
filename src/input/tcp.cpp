@@ -95,16 +95,18 @@ void TcpInput::connection(void *arg, AsyncClient *client) {
 }
 
 /**
- * clear all known client connections
+ * clear the oldest known client connection and return its slot
 */
 int8_t TcpInput::clear() {
 	for (size_t i = 0; i < TCP_MAX; i++)
     {
-        if (tcpClients[i] != nullptr) continue;
+        if (tcpClients[i] == nullptr) continue;
+
         AsyncClient *client = tcpClients[i];
-        tcpClients[i]->abort();
         tcpClients[i] = nullptr;
+        client->close();
         delete client;
+        return i;
     }
     return 0;
 }
@@ -116,6 +118,7 @@ void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
     data_packet_t* dataPacket = (data_packet_t*)MALLOC(sizeof(data_packet_t));
     if (!dataPacket) ESP.restart();
 
+    if (size > sizeof(dataPacket->data)) size = sizeof(dataPacket->data);
     dataPacket->size = size;
     memcpy(dataPacket->data, (uint8_t*)data, size);
 
@@ -131,8 +134,8 @@ void TcpInput::timeout(void *arg, AsyncClient *client, uint32_t time) {
 	for (size_t i = 0; i < TCP_MAX; i++)
     {
         if (tcpClients[i] != client) continue;
-        tcpClients[i]->abort();
         tcpClients[i] = nullptr;
+        client->close();
         delete client;
         break;
     }
@@ -145,8 +148,8 @@ void TcpInput::error(void *arg, AsyncClient *client, int8_t error) {
 	for (size_t i = 0; i < TCP_MAX; i++)
     {
         if (tcpClients[i] != client) continue;
-        tcpClients[i]->abort();
         tcpClients[i] = nullptr;
+        client->abort();
         delete client;
         break;
     }
