@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>esp32-divoom Web Flasher</title>
+    <meta name="description" content="Flash the esp32-divoom firmware and its configuration straight from your browser.">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="vendor/install-button.js"></script>
+    <script type="module" src="flash.js"></script>
+</head>
+
+<body>
+    <header>
+        <h1>esp32-divoom <span id="version" class="badge">firmware</span></h1>
+        <p><strong>Divoom Proxy for ESP32</strong></p>
+        <p>
+            Fill in your values, connect your ESP32 with a working USB data cable and flash it right from this page.
+            Everything you enter stays in your browser &mdash; the configuration image is built locally and nothing is uploaded anywhere.
+            See the <a href="https://github.com/d03n3rfr1tz3/esp32-divoom">project on GitHub</a> for the documentation.
+        </p>
+    </header>
+
+    <main>
+        <form id="config">
+            <fieldset>
+                <legend>Wi-Fi</legend>
+
+                <label for="wifi_ssid1">Primary WiFi Name (SSID)</label>
+                <input id="wifi_ssid1" name="wifi_ssid1" type="text" maxlength="32" autocomplete="off" spellcheck="false">
+
+                <label for="wifi_pass1">Primary WiFi Password</label>
+                <input id="wifi_pass1" name="wifi_pass1" type="password" maxlength="63" autocomplete="off" spellcheck="false">
+
+                <label for="wifi_ssid2">Secondary WiFi Name</label>
+                <input id="wifi_ssid2" name="wifi_ssid2" type="text" maxlength="32" autocomplete="off" spellcheck="false">
+
+                <label for="wifi_pass2">Secondary WiFi Password</label>
+                <input id="wifi_pass2" name="wifi_pass2" type="password" maxlength="63" autocomplete="off" spellcheck="false">
+
+                <div class="check">
+                    <input id="reveal" type="checkbox">
+                    <label for="reveal">Show passwords</label>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Device</legend>
+
+                <label for="device_name">Device name</label>
+                <input id="device_name" type="text" maxlength="31" placeholder="ESP32-Divoom" autocomplete="off" spellcheck="false"
+                       pattern="[A-Za-z0-9]([A-Za-z0-9\-]{0,29}[A-Za-z0-9])?"
+                       title="Letters, digits and dashes, 1 to 31 characters, no dash at the start or end.">
+                <p class="hint">Give every device its own name, then several of them can run side by side.</p>
+                <div id="derived" class="derived" hidden>
+                    <p>This name fills in:</p>
+                    <ul></ul>
+                </div>
+
+                <label for="wifi_name">WiFi Hostname / mDNS name</label>
+                <input id="wifi_name" name="wifi_name" type="text" maxlength="31" placeholder="ESP32-Divoom" autocomplete="off" spellcheck="false"
+                       pattern="[A-Za-z0-9]([A-Za-z0-9\-]{0,29}[A-Za-z0-9])?"
+                       title="Letters, digits and dashes, 1 to 31 characters, no dash at the start or end.">
+
+                <label for="bt_name">Bluetooth name</label>
+                <input id="bt_name" name="bt_name" type="text" maxlength="31" placeholder="ESP32-Divoom" autocomplete="off" spellcheck="false">
+            </fieldset>
+
+            <fieldset>
+                <legend>MQTT <span class="optional">optional</span></legend>
+                <p class="hint">Leave the broker empty to run without MQTT. Serial and TCP work either way.</p>
+
+                <label for="mqtt_host">Broker</label>
+                <input id="mqtt_host" name="mqtt_host" type="text" maxlength="63" placeholder="192.168.0.2" autocomplete="off" spellcheck="false">
+
+                <label for="mqtt_port">Port</label>
+                <input id="mqtt_port" name="mqtt_port" type="number" min="1" max="65535" placeholder="1883" autocomplete="off">
+
+                <label for="mqtt_user">User</label>
+                <input id="mqtt_user" name="mqtt_user" type="text" maxlength="63" autocomplete="off" spellcheck="false">
+
+                <label for="mqtt_pass">Password</label>
+                <input id="mqtt_pass" name="mqtt_pass" type="password" maxlength="63" autocomplete="off" spellcheck="false">
+
+                <label for="mqtt_client">Client ID</label>
+                <input id="mqtt_client" name="mqtt_client" type="text" maxlength="31" placeholder="ESP32-Divoom" autocomplete="off" spellcheck="false">
+
+                <label for="mqtt_topic">Topic pattern</label>
+                <input id="mqtt_topic" name="mqtt_topic" type="text" maxlength="40" placeholder="divoom/%s" autocomplete="off" spellcheck="false"
+                       pattern="[^%]*%s[^%]*"
+                       title="Has to contain exactly one %s, which is where the command name goes. For example divoom/livingroom/%s">
+            </fieldset>
+        </form>
+
+        <section class="actions">
+            <div class="action" data-mode="install" hidden>
+                <esp-web-install-button>
+                    <button slot="activate" type="button" class="primary">Install firmware and configuration</button>
+                    <span slot="unsupported" class="notice">
+                        Your browser cannot talk to serial devices. Use Chrome, Edge or Opera on a desktop,
+                        or take the <a href="#offline">configuration image</a> below.
+                    </span>
+                    <span slot="not-allowed" class="notice">Flashing needs a secure context, so open this page over <code>https</code>.</span>
+                </esp-web-install-button>
+                <p class="hint">Writes bootloader, partition table and firmware together with your configuration. This is the one to pick for a new device.</p>
+            </div>
+
+            <div class="action" data-mode="config">
+                <esp-web-install-button>
+                    <button slot="activate" type="button">Update configuration only</button>
+                    <span slot="unsupported" class="notice">
+                        Your browser cannot talk to serial devices. Use Chrome, Edge or Opera on a desktop,
+                        or take the <a href="#offline">configuration image</a> below.
+                    </span>
+                    <span slot="not-allowed" class="notice">Flashing needs a secure context, so open this page over <code>https</code>.</span>
+                </esp-web-install-button>
+                <p class="hint">Keeps the firmware that is already on the device and only rewrites your values.</p>
+            </div>
+
+            <p id="unavailable" class="notice" hidden></p>
+        </section>
+
+        <section id="offline">
+            <h2>Without flashing from the browser</h2>
+            <p>
+                <a id="download" href="#">Download configuration image</a> and write it yourself:
+            </p>
+            <pre><code>esptool.py write_flash 0x9000 nvs.bin</code></pre>
+        </section>
+
+        <section class="notes">
+            <h2>Good to know</h2>
+            <ul>
+                <li>
+                    Running more than one device on the same network or broker means hostname, Bluetooth name, client ID and topic pattern
+                    have to differ. Two devices sharing a client ID keep kicking each other off the broker, and a shared topic pattern mixes
+                    both of them into one tree. The device name takes care of the first three, the topic pattern is yours to set &mdash;
+                    something like <code>Divoom-Livingroom</code> with <code>divoom/livingroom/%s</code> works well.
+                </li>
+                <li>
+                    Values you leave empty fall back to the defaults the firmware was built with.
+                </li>
+                <li>
+                    <strong>Update configuration only:</strong> the dialog offers to erase the device first. Leave that checkbox empty &mdash;
+                    ticking it wipes the firmware and the device stops booting until you run a full install again.
+                </li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p><a href="https://github.com/d03n3rfr1tz3/esp32-divoom">esp32-divoom</a> &mdash; flashing powered by <a href="https://esphome.github.io/esp-web-tools/">ESP Web Tools</a>.</p>
+    </footer>
+</body>
+
+</html>

@@ -3,3 +3,5 @@
 .vscode/**
 config_local.h
 test/web/fixtures
+web/firmware
+web/vendor
