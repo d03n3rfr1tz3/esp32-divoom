@@ -23,6 +23,10 @@
     #define TCP_PORT         7777
     #define TCP_MAX          3
 
+    /* Serial Output Configuration */
+    #define SERIAL_OUT_RX    -1
+    #define SERIAL_OUT_TX    -1
+
     /* MQTT Configuration */
     #define MQTT_CLIENT      "ESP32-Divoom"
     #define MQTT_HOST        ""

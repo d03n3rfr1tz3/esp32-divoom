@@ -20,6 +20,7 @@ void setup() {
   BluetoothHandler::setup();
   WifiHandler::setup();
   BaseInput::setup();
+  BaseOutput::setup();
 
   esp_task_wdt_reset();
   delay(10);

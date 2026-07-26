@@ -1,6 +1,8 @@
 
 #include "serial.h"
 
+#include "config.h"
+
 #include "input/base.h"
 #include "output/base.h"
 
@@ -10,7 +12,8 @@ HardwareSerial serialOut(1);
  * setup functionality
 */
 void SerialOutput::setup() {
-    serialOut.begin(9600);
+    if (SERIAL_OUT_RX < 0 || SERIAL_OUT_TX < 0) return;
+    serialOut.begin(9600, SERIAL_8N1, SERIAL_OUT_RX, SERIAL_OUT_TX);
 }
 
 /**

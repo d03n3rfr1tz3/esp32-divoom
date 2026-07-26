@@ -9,6 +9,8 @@
 
     class BaseOutput {
         public:
+            static void setup();
+            
             static void forward(const uint8_t *buffer, size_t size);
     };
 #endif
