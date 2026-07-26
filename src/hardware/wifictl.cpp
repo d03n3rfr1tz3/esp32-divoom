@@ -2,6 +2,8 @@
 #include "wifictl.h"
 
 #include "util.h"
+#include "settings.h"
+
 #include "input/base.h"
 #include "output/base.h"
 
@@ -17,7 +19,7 @@ void WifiHandler::setup(void) {
     WiFi.persistent(true);
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
-    WiFi.setHostname(WIFI_NAME);
+    WiFi.setHostname(SettingsHandler::wifiName.c_str());
     WiFi.onEvent(scanned, WiFiEvent_t::ARDUINO_EVENT_WIFI_SCAN_DONE);
     WiFi.onEvent(connected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
     WiFi.onEvent(disconnected, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
@@ -77,8 +79,8 @@ void WifiHandler::connect(void) {
         auto ssid = WiFi.SSID(i);
         if (ssid == NULL || ssid.length() == 0) continue;
 
-        if (ssid == WIFISSID1) { WiFi.begin(WIFISSID1, WIFIPASS1); break; }
-        if (ssid == WIFISSID2) { WiFi.begin(WIFISSID2, WIFIPASS2); break; }
+        if (!SettingsHandler::wifiSsid1.isEmpty() && ssid == SettingsHandler::wifiSsid1) { WiFi.begin(SettingsHandler::wifiSsid1.c_str(), SettingsHandler::wifiPass1.c_str()); break; }
+        if (!SettingsHandler::wifiSsid2.isEmpty() && ssid == SettingsHandler::wifiSsid2) { WiFi.begin(SettingsHandler::wifiSsid2.c_str(), SettingsHandler::wifiPass2.c_str()); break; }
     }
 
     WiFi.scanDelete();
@@ -108,10 +110,10 @@ void WifiHandler::connected(WiFiEvent_t event, WiFiEventInfo_t info) {
     WiFi.setTxPower(WIFI_POWER_15dBm);
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
-    WiFi.setHostname(WIFI_NAME);
+    WiFi.setHostname(SettingsHandler::wifiName.c_str());
     WiFi.persistent(true);
 
-    MDNS.begin(WIFI_NAME);
+    MDNS.begin(SettingsHandler::wifiName.c_str());
     MDNS.addService("_divoom_esp32", "_tcp", TCP_PORT);
     isMdnsReady = true;
 
