@@ -8,9 +8,9 @@ const FIRMWARE_DIR = "firmware/";
 
 // the identity values the device name fills in, the topic pattern stays on its own
 const DERIVED = {
-    wifi_name: "Hostname",
-    bt_name: "Bluetooth name",
-    mqtt_client: "MQTT client ID"
+    wifi_name: "WiFi Hostname",
+    bt_name: "Bluetooth Name",
+    mqtt_client: "MQTT Client ID"
 };
 
 // the form field names are the nvs keys, this only adds the type
