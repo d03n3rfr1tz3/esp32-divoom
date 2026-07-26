@@ -191,13 +191,17 @@ void TcpInput::queue(void *parameter) {
 
             // prepare packet split size, if necessary
             for (size_t maxAnimation : maxAnimations) {
-                uint8_t posAnimation = maxAnimation - 1;
+                size_t posAnimation = maxAnimation - 1;
+                if (len <= posAnimation) continue;
+
                 uint8_t *startBuffer = previousSize > 0 ? previousBuffer : packetBuffer;
-                uint8_t *endBuffer = previousSize > maxAnimation ? previousBuffer : packetBuffer;
-                uint8_t endPosition = previousSize > maxAnimation ? posAnimation : posAnimation - previousSize;
+                uint8_t *endBuffer = previousSize > posAnimation ? previousBuffer : packetBuffer;
+                size_t endPosition = previousSize > posAnimation ? posAnimation : posAnimation - previousSize;
                 if (startBuffer[0] == 0x01 && startBuffer[3] == 0x49 && endBuffer[endPosition] == 0x02) max = maxAnimation; // animation stream detected. splitting accordingly
             }
-            
+
+            if (max < previousSize) max = previousSize;
+
             // split buffer into corresponding max size packets, to make sure animation stream sends every frame as a separate packet
             while (len > 0) {
                 size_t thisSize = 0;
@@ -218,7 +222,7 @@ void TcpInput::queue(void *parameter) {
                 previousSize = 0;
 
                 // copy rest into separate buffer instead of sending incomplete data, if there is another message in the queue
-                if (len <= max && packetBuffer[len - 1] != 0x02) {
+                if (len > 0 && len <= max && packetBuffer[len - 1] != 0x02) {
                     previousSize = len;
                     memcpy(previousBuffer, packetBuffer, len);
                     break;
