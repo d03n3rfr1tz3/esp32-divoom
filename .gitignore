@@ -2,3 +2,4 @@
 .vs/**
 .vscode/**
 config_local.h
+test/web/fixtures

@@ -1,0 +1,64 @@
+[
+    {
+        "name": "namespace_only",
+        "entries": []
+    },
+    {
+        "name": "all_values",
+        "entries": [
+            { "key": "wifi_ssid1", "type": "str", "value": "MyNetwork" },
+            { "key": "wifi_pass1", "type": "str", "value": "secret123" },
+            { "key": "wifi_ssid2", "type": "str", "value": "GuestNetwork" },
+            { "key": "wifi_pass2", "type": "str", "value": "guestsecret" },
+            { "key": "wifi_name", "type": "str", "value": "ESP32-Divoom" },
+            { "key": "bt_name", "type": "str", "value": "ESP32-Divoom" },
+            { "key": "mqtt_host", "type": "str", "value": "192.168.1.10" },
+            { "key": "mqtt_port", "type": "u16", "value": 1883 },
+            { "key": "mqtt_user", "type": "str", "value": "divoom" },
+            { "key": "mqtt_pass", "type": "str", "value": "brokerpass" },
+            { "key": "mqtt_client", "type": "str", "value": "ESP32-Divoom" },
+            { "key": "mqtt_topic", "type": "str", "value": "divoom/%s" }
+        ]
+    },
+    {
+        "name": "special_chars",
+        "entries": [
+            { "key": "wifi_ssid1", "type": "str", "value": "Küche-WLAN" },
+            { "key": "wifi_pass1", "type": "str", "value": "pa,ss\"wörd#1" },
+            { "key": "wifi_ssid2", "type": "str", "value": "My WLAN 2.4 GHz" },
+            { "key": "bt_name", "type": "str", "value": "Divoom 🏠" },
+            { "key": "mqtt_topic", "type": "str", "value": "divoom/küche/%s" }
+        ]
+    },
+    {
+        "name": "long_strings",
+        "entries": [
+            { "key": "wifi_pass1", "type": "str", "value": "0123456789012345678901234567890" },
+            { "key": "wifi_pass2", "type": "str", "value": "01234567890123456789012345678901" },
+            { "key": "mqtt_pass", "type": "str", "value": "012345678901234567890123456789012345678901234567890123456789012" }
+        ]
+    },
+    {
+        "name": "partial",
+        "entries": [
+            { "key": "wifi_ssid1", "type": "str", "value": "MyNetwork" },
+            { "key": "wifi_pass1", "type": "str", "value": "secret123" },
+            { "key": "mqtt_host", "type": "str", "value": "broker.local" },
+            { "key": "mqtt_port", "type": "u16", "value": 1 }
+        ]
+    },
+    {
+        "name": "port_max",
+        "entries": [
+            { "key": "mqtt_port", "type": "u16", "value": 65535 }
+        ]
+    },
+    {
+        "name": "small_partition",
+        "size": 12288,
+        "entries": [
+            { "key": "wifi_ssid1", "type": "str", "value": "MyNetwork" },
+            { "key": "wifi_pass1", "type": "str", "value": "secret123" }
+        ]
+    }
+]
