@@ -27,7 +27,7 @@
             void send_weather(char* value, uint8_t weather);
             void send_datetime(char* date, char* time);
 
-            void show_clock(uint8_t clock, bool twentyfour, bool weather, bool temp, bool calendar, char* color, int8_t hot);
+            void show_clock(uint8_t clock, int8_t twentyfour, bool weather, bool temp, bool calendar, char* color, int8_t hot);
             void show_light(char* color, uint8_t brightness, bool power);
             void show_effects(uint8_t value);
             void show_visualization(uint8_t value);

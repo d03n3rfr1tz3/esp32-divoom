@@ -67,7 +67,7 @@ static void test_checksum_high_byte_is_little_endian(void) {
     data_commands_t* commands = encode("light 77 ff0080 1");
     const data_command_t* frame = &commands->command[0];
 
-    TEST_ASSERT_EQUAL_HEX8(0x1d, frame->data[frame->size - 3]);
+    TEST_ASSERT_EQUAL_HEX8(0x20, frame->data[frame->size - 3]);
     TEST_ASSERT_EQUAL_HEX8(0x02, frame->data[frame->size - 2]);
 }
 
@@ -92,6 +92,10 @@ static void test_frame_counts_depend_on_arguments(void) {
 
     TEST_ASSERT_EQUAL_UINT8(2, count_of("design 2"));
     TEST_ASSERT_EQUAL_UINT8(1, count_of("design 9"));
+
+    TEST_ASSERT_EQUAL_UINT8(1, count_of("clock 3"));
+    TEST_ASSERT_EQUAL_UINT8(2, count_of("clock 3 1"));
+    TEST_ASSERT_EQUAL_UINT8(3, count_of("clock 3 1 1 1 1 0a141e 1"));
 }
 
 /** every prefix is matched with `size > strlen(prefix)`, so the bare word cannot match */

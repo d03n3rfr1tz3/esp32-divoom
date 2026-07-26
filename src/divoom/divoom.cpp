@@ -98,12 +98,12 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         size -= offset;
 
         uint8_t clock = 0;
-        bool twentyfour = 0;
+        int8_t twentyfour = -1;
         bool weather = 0;
         bool temp = 0;
         bool calendar = 0;
         char* color = nullptr;
-        int8_t hot = 0;
+        int8_t hot = -1;
 
         char *token = strtok(content, " ");
         if (token != NULL) clock = strtoul(token, NULL, 10);
@@ -505,19 +505,10 @@ void Divoom::send_keyboard(int8_t value) {
 
     buffer[index++] = 0x23; // set keyboard lights
 
-    if (value == 0) {
-        buffer[index++] = 0x02;
-        buffer[index++] = 0x29;
-    }
-    if (value > 0) {
-        buffer[index++] = 0x01;
-        buffer[index++] = 0x28;
-    }
-    if (value < 0) {
-        buffer[index++] = 0x00;
-        buffer[index++] = 0x27;
-    }
-    
+    if (value == 0) buffer[index++] = 0x02;
+    if (value > 0) buffer[index++] = 0x01;
+    if (value < 0) buffer[index++] = 0x00;
+
     command(&(commands.command[commands.count++]), buffer, index);
 }
 
@@ -614,14 +605,24 @@ void Divoom::send_datetime(char* date, char* time) {
  * shows the clock channel
 */
 
-void Divoom::show_clock(uint8_t clock, bool twentyfour, bool weather, bool temp, bool calendar, char* color, int8_t hot) {
+void Divoom::show_clock(uint8_t clock, int8_t twentyfour, bool weather, bool temp, bool calendar, char* color, int8_t hot) {
+    if (twentyfour >= 0) {
+        size_t index = 0;
+        uint8_t buffer[4];
+
+        buffer[index++] = 0x2d; // set time type
+        buffer[index++] = twentyfour == 1 ? 0x01 : 0x00; // 12h or 24h format
+
+        command(&(commands.command[commands.count++]), buffer, index);
+    }
+
     if (true) {
         size_t index = 0;
         uint8_t buffer[16];
 
         buffer[index++] = 0x45; // set view
         buffer[index++] = 0x00; // clock view
-        buffer[index++] = twentyfour ? 0x01 : 0x00; // 12h or 24h format
+        buffer[index++] = twentyfour == 1 ? 0x01 : 0x00; // 12h or 24h format
         
         if (clock <= 15) {
             buffer[index++] = clock; // clock style
@@ -680,7 +681,10 @@ void Divoom::show_light(char* color, uint8_t brightness, bool power) {
     buffer[index++] = brightness; // brightness
     buffer[index++] = color == nullptr ? 0x01 : 0x00; // effect mode
     buffer[index++] = power ? 0x01 : 0x00; // power on/off
-    
+    buffer[index++] = 0x00;
+    buffer[index++] = 0x00;
+    buffer[index++] = 0x00;
+
     command(&(commands.command[commands.count++]), buffer, index);
 }
 
