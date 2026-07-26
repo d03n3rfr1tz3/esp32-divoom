@@ -85,6 +85,13 @@ void WifiHandler::connect(void) {
 }
 
 /**
+ * checks whether the mdns responder was started
+*/
+bool WifiHandler::mdns(void) {
+    return isMdnsReady;
+}
+
+/**
  * callback for when the scan finished
 */
 void WifiHandler::scanned(WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -106,6 +113,7 @@ void WifiHandler::connected(WiFiEvent_t event, WiFiEventInfo_t info) {
 
     MDNS.begin(WIFI_NAME);
     MDNS.addService("_divoom_esp32", "_tcp", TCP_PORT);
+    isMdnsReady = true;
 
     Serial.print("IP: ");
     WiFi.localIP().printTo(Serial);

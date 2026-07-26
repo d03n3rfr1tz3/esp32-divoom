@@ -15,9 +15,11 @@
             static void loop(void);
             static bool check(bool fast);
             static void connect(void);
+            static bool mdns(void);
 
         private:
             inline static bool isConnected;
+            inline static bool isMdnsReady;
             inline static uint8_t retryCount;
             inline static unsigned long timer;
 

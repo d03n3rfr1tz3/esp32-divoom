@@ -32,7 +32,8 @@
 
         private:
             inline static bool isConnected;
-            inline static bool isConnecting;
+            inline static volatile bool isConnecting;
+            inline static volatile bool isDiscovering;
             inline static unsigned long timer;
             inline static BluetoothSerial serialBT;
             inline static TaskHandle_t discoverHandle;

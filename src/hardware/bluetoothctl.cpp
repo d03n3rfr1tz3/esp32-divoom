@@ -2,6 +2,7 @@
 #include "bluetoothctl.h"
 
 #include "util.h"
+#include "wifictl.h"
 #include "input/base.h"
 #include "output/base.h"
 
@@ -25,8 +26,10 @@ void BluetoothHandler::loop(void) {
     if (getElapsed(timer) > 15000) {
         timer = millis();
 
-        BaseType_t taskResult = xTaskCreatePinnedToCore(task, "BluetoothTask", 2048, NULL, 1, &discoverHandle, 1);
-        if (taskResult != pdPASS) ESP.restart();
+        if (!isConnecting && !isDiscovering) {
+            BaseType_t taskResult = xTaskCreatePinnedToCore(task, "BluetoothTask", 2048, NULL, 1, &discoverHandle, 1);
+            if (taskResult != pdPASS) ESP.restart();
+        }
     }
 }
 
@@ -41,9 +44,11 @@ void BluetoothHandler::task(void *parameter) {
         isConnected = false;
         isConnecting = false;
 
+        isDiscovering = true;
         BluetoothHandler::discover(7500);
+        isDiscovering = false;
     }
-    
+
     vTaskDelete(NULL);
 }
 
@@ -87,6 +92,7 @@ void BluetoothHandler::discover(int timeout) {
         // We have to restart the ESP, because it seems there is no way to get advertising going again after connecting once.
         // This is quite an old bug, that was never fixed and IMO is a major oversight.
         ESP.restart();
+        return;
     }
 
     for (int i = 0; i < devices->getCount(); i++) {
@@ -105,7 +111,7 @@ void BluetoothHandler::discover(int timeout) {
         if (BLUETOOTH_FILTER && !supported) continue;
 
         // pass it into zeroconf
-        if (supported) {
+        if (supported && WifiHandler::mdns()) {
             MDNS.addServiceTxt("_divoom_esp32", "_tcp", "device_mac", device->getAddress().toString().c_str());
             MDNS.addServiceTxt("_divoom_esp32", "_tcp", "device_name", name.c_str());
         }
