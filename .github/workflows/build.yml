@@ -31,7 +31,7 @@ jobs:
       - name: Build PlatformIO Project
         run: pio run -e esp32dev
       - name: Archive ESP32 Firmware
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: esp32-divoom
           path: .pio/build/esp32dev/*.bin
