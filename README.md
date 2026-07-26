@@ -1,6 +1,7 @@
 # esp32-divoom
 [![Compile Project](https://github.com/d03n3rfr1tz3/esp32-divoom/actions/workflows/build.yml/badge.svg)](https://github.com/d03n3rfr1tz3/esp32-divoom/actions/workflows/build.yml)
 [![Test Suite](https://github.com/d03n3rfr1tz3/esp32-divoom/actions/workflows/test.yml/badge.svg)](https://github.com/d03n3rfr1tz3/esp32-divoom/actions/workflows/test.yml)
+[![Deploy Web Flasher](https://github.com/d03n3rfr1tz3/esp32-divoom/actions/workflows/pages.yml/badge.svg)](https://github.com/d03n3rfr1tz3/esp32-divoom/actions/workflows/pages.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/d03n3rfr1tz3/esp32-divoom?include_prereleases)](https://github.com/d03n3rfr1tz3/esp32-divoom/releases/latest)
 
 **Divoom Proxy for ESP32**
@@ -61,7 +62,15 @@ This firmware obviously needs an ESP32. Other then that, not much is needed, as 
 
 ### Easy Installation
 
-In the future I might use [ESP Web Tools](https://esphome.github.io/esp-web-tools/) for an easier installation process. For now, you have to go for the manual installation.
+The [Web Flasher](https://d03n3rfr1tz3.github.io/esp32-divoom/) installs the firmware of the latest release right from your browser, together with your WiFi and MQTT
+configuration. It needs a browser that speaks Web Serial, so Chrome, Edge or Opera on a desktop. Firefox and Safari cannot talk to serial devices at all.
+
+* Open the [Web Flasher](https://d03n3rfr1tz3.github.io/esp32-divoom/)
+* Fill in your values. Everything you enter stays in your browser and nothing is uploaded anywhere.
+* Connect your ESP32 with a working USB Data Cable
+* Press `Install firmware and configuration` and pick the serial port of your ESP32
+* ...
+* Profit
 
 ### Manual Installation
 
@@ -79,11 +88,39 @@ This firmware is a PlatformIO project. Until I can find and prepare a more easy 
 
 ### Easy Configuration
 
-Well again, currently there is no easy way, but that might change in the future.
+The [Web Flasher](https://d03n3rfr1tz3.github.io/esp32-divoom/) writes your values into the `nvs` partition of the ESP32. That makes them configuration instead of source code,
+so you neither need a toolchain nor a rebuild to change them. The same form covers both situations:
+
+* On a new device press `Install firmware and configuration`. That writes firmware and configuration in one go.
+* On a device that already runs this firmware press `Update configuration only`. That keeps the firmware and rewrites just your values. The dialog offers to erase the device
+  first, leave that checkbox empty.
+
+Without a Web Serial browser you can still use the form. `Download configuration image` gives you the same image as a file, which you can write yourself:
+
+```
+esptool.py write_flash 0x9000 nvs.bin
+```
+
+If you want to build that image yourself, for example with `esp-idf-nvs-partition-gen`, the values live in the NVS namespace `divoom` and replace these defaults:
+
+| Key | Type | Replaces |
+|---|---|---|
+| `wifi_ssid1` / `wifi_pass1` | str | `WIFISSID1` / `WIFIPASS1` |
+| `wifi_ssid2` / `wifi_pass2` | str | `WIFISSID2` / `WIFIPASS2` |
+| `wifi_name` | str | `WIFI_NAME` |
+| `bt_name` | str | `BLUETOOTH_NAME` |
+| `mqtt_host` | str | `MQTT_HOST` |
+| `mqtt_port` | u16 | `MQTT_PORT` |
+| `mqtt_user` / `mqtt_pass` | str | `MQTT_USER` / `MQTT_PASS` |
+| `mqtt_client` | str | `MQTT_CLIENT` |
+| `mqtt_topic` | str | `MQTT_TOPIC` |
+
+Every key you leave out keeps the value the firmware was built with. Two of them are checked on boot and silently fall back to that value if they do not fit: `wifi_name` has
+to be a hostname (letters, digits and dashes, 1 to 31 characters, no dash at the start or end) and `mqtt_topic` has to contain exactly one `%s` and stay below 41 characters.
 
 ### Manual Configuration
 
-Currently you need to configure the firmware directly in your own `config_local.h` before flashing. This might change in the future.
+If you build the firmware yourself, you can also configure it directly in your own `config_local.h` before flashing.
 
 The default configuration `config.h` has a lot of empty values you very likely want to fill. To not run into problems with later updates,
 I recommend you to create a `config_local.h` with your own values. Here is an example:
@@ -112,6 +149,13 @@ I recommend you to create a `config_local.h` with your own values. Here is an ex
 ```
 
 Notice the undefining of each value before defining it with my own value. That way you don't get ugly warnings from the compiler later. 😉
+
+Both ways can be combined, because a value stored in the `nvs` partition wins over `config_local.h`. Your own build keeps using your `config_local.h` as long as you never
+write a configuration image over it. The other way around, every field you leave empty in the Web Flasher keeps the value the firmware was built with, which on your own
+build is exactly your `config_local.h`.
+
+A few settings are still compile time only and therefore not part of the Web Flasher: `LED_BUILTIN`, `BLUETOOTH_FILTER`, `BLUETOOTH_RETRY`, `WIFI_RETRY`, `TCP_PORT`,
+`TCP_MAX`, `SERIAL_OUT_RX` and `SERIAL_OUT_TX`.
 
 ## Usage
 
@@ -522,3 +566,17 @@ pio test -e record
 ```
 
 Adding a new MODE command to the coverage takes a single entry in `test/cases.h`. Running `pio test -e record` afterwards creates its golden file.
+
+The remaining tests cover the helpers in `src/util.cpp` and the value checks in `src/validate.h`, which decide whether a configuration value from the `nvs` partition is
+accepted or replaced by the default.
+
+The NVS encoder of the Web Flasher has its own suite, because it has to produce the exact same bytes as Espressif's own generator. It compares both images byte for byte and
+needs Python and Node instead of a C++ compiler:
+
+```
+pip install esp-idf-nvs-partition-gen==0.3.0
+python test/web/generate_fixtures.py
+node --test test/web/nvs.test.mjs
+```
+
+The reference images land in `test/web/fixtures` and are not part of the repository. Both suites also run in GitHub Actions.
