@@ -44,9 +44,17 @@ void BluetoothHandler::task(void *parameter) {
         isConnected = false;
         isConnecting = false;
 
-        isDiscovering = true;
-        BluetoothHandler::discover(7500);
-        isDiscovering = false;
+        // a dropped connection is no discovery case, the peer is still known
+        if (remoteAddress && reconnectCount < BLUETOOTH_RETRY) {
+            reconnectCount++;
+            BluetoothHandler::connect(remoteAddress, remoteChannel);
+        } else {
+            remoteAddress = BTAddress();
+
+            isDiscovering = true;
+            BluetoothHandler::discover(7500);
+            isDiscovering = false;
+        }
     }
 
     vTaskDelete(NULL);
@@ -71,6 +79,13 @@ bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *
     isConnecting = true;
     isConnected = serialBT.connect(address, channel);
     isConnecting = false;
+
+    if (isConnected) {
+        remoteAddress = address;
+        remoteChannel = channel;
+        reconnectCount = 0;
+    }
+
     return isConnected;
 }
 
@@ -80,6 +95,10 @@ bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *
 bool BluetoothHandler::disconnect(void) {
     isConnected = false;
     isConnecting = false;
+
+    // an explicit disconnect is final, so drop the peer to prevent a reconnect
+    remoteAddress = BTAddress();
+
     return serialBT.disconnect();
 }
 
@@ -89,7 +108,7 @@ bool BluetoothHandler::disconnect(void) {
 void BluetoothHandler::discover(int timeout) {
     BTScanResults* devices = serialBT.discover(timeout);
     if (devices == nullptr) {
-        // We have to restart the ESP, because it seems there is no way to get advertising going again after connecting once.
+        // BluetoothSerial sets _isRemoteAddressSet on connect and never clears it, so discovery stays refused until a restart.
         // This is quite an old bug, that was never fixed and IMO is a major oversight.
         ESP.restart();
         return;

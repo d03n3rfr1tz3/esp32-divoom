@@ -38,6 +38,10 @@
             inline static BluetoothSerial serialBT;
             inline static TaskHandle_t discoverHandle;
 
+            inline static BTAddress remoteAddress;
+            inline static uint16_t remoteChannel;
+            inline static uint8_t reconnectCount;
+
             static void discover(int timeout);
             static void task(void *parameter);
             static void event(esp_spp_cb_event_t event, esp_spp_cb_param_t *param);
