@@ -1,0 +1,75 @@
+name: Deploy Web Flasher
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag, branch or commit to build'
+        required: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+
+env:
+  ESP_WEB_TOOLS: 10.4.0
+  PLATFORMIO_BUILD_DIR: ${{ github.workspace }}/build
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.event.release.tag_name || github.ref }}
+          fetch-depth: 0
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Install PlatformIO Core
+        run: pip install --upgrade platformio
+
+      - name: Build PlatformIO Project
+        run: pio run -e esp32dev
+
+      - name: Collect Flasher Page
+        run: |
+          mkdir -p _site/firmware
+          cp web/*.html web/*.css web/*.js _site/
+
+      - name: Collect Firmware Images
+        run: |
+          build="$PLATFORMIO_BUILD_DIR/esp32dev"
+          for image in $(jq -r '.[].path' "$build/parts.json"); do cp "$build/$image" _site/firmware/; done
+          cp "$build/parts.json" _site/firmware/
+          printf '{ "version": "%s" }\n' "${VERSION:-$(git describe --tags --always)}" > _site/firmware/version.json
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+
+      - name: Collect ESP Web Tools
+        run: |
+          curl -sSfL "https://registry.npmjs.org/esp-web-tools/-/esp-web-tools-$ESP_WEB_TOOLS.tgz" -o esp-web-tools.tgz
+          tar -xzf esp-web-tools.tgz package/dist/web
+          mv package/dist/web _site/vendor
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,251 @@
+
+/* Light and dark are both driven by these, the rest of the sheet only uses the variables. */
+
+:root {
+    --background: #ffffff;
+    --surface: #f8f9fb;
+    --text: #1f2328;
+    --muted: #59636e;
+    --border: #d1d9e0;
+    --accent: #1f6feb;
+    --accent-text: #ffffff;
+    --code: #eff1f3;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #0d1117;
+        --surface: #151b23;
+        --text: #f0f6fc;
+        --muted: #9198a1;
+        --border: #3d444d;
+        --accent: #4493f8;
+        --accent-text: #0d1117;
+        --code: #212830;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    margin: 0 auto;
+    padding: 2rem 1rem 3rem;
+    max-width: 44rem;
+    background: var(--background);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+}
+
+h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.8rem;
+}
+
+h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.2rem;
+}
+
+p {
+    margin: 0 0 1rem;
+}
+
+a {
+    color: var(--accent);
+}
+
+code {
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    background: var(--code);
+    font-size: 0.9em;
+}
+
+pre {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--code);
+}
+
+pre code {
+    padding: 0;
+    background: none;
+}
+
+header {
+    margin-bottom: 2rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-text);
+    font-size: 0.8rem;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+fieldset,
+#offline,
+.notes {
+    margin: 0 0 1.5rem;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
+}
+
+legend {
+    padding: 0 0.4rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.optional {
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="number"] {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--background);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.95rem;
+}
+
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+input:invalid {
+    border-color: #cf222e;
+}
+
+.check {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+
+.check label {
+    margin: 0;
+    font-weight: 400;
+}
+
+.hint {
+    margin: -0.5rem 0 1rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.derived {
+    margin: -0.5rem 0 1rem;
+    padding: 0.5rem 0.75rem;
+    border-left: 3px solid var(--accent);
+    background: var(--code);
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+
+.derived p {
+    margin: 0;
+}
+
+.derived ul {
+    margin: 0.25rem 0 0;
+    padding-left: 1.1rem;
+}
+
+button {
+    padding: 0.55rem 1.1rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--background);
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button.primary {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-text);
+}
+
+.actions {
+    margin-bottom: 2rem;
+}
+
+.action {
+    margin-bottom: 1.25rem;
+}
+
+.action .hint {
+    margin: 0.5rem 0 0;
+}
+
+.notice {
+    display: block;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.notes ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.notes li {
+    margin-bottom: 0.75rem;
+}
+
+.notes li:last-child {
+    margin-bottom: 0;
+}
+
+footer {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+footer p {
+    margin: 0;
+}

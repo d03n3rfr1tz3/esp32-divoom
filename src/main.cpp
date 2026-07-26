@@ -2,6 +2,7 @@
 #include "esp_task_wdt.h"
 
 #include "config.h"
+#include "settings.h"
 
 #include "hardware/bluetoothctl.h"
 #include "hardware/wifictl.h"
@@ -16,7 +17,8 @@ void setup() {
   Serial.begin(115200);
   esp_task_wdt_init(30, true);
   esp_task_wdt_add(NULL);
-  
+
+  SettingsHandler::setup();
   BluetoothHandler::setup();
   WifiHandler::setup();
   BaseInput::setup();

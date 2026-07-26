@@ -28,3 +28,27 @@ jobs:
       # The native environment runs on the host, so no board is involved.
       - name: Run Unit Tests
         run: pio test -e native
+
+  nvs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-nvs
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+
+      - name: Install NVS Partition Generator
+        run: pip install esp-idf-nvs-partition-gen==0.3.0
+      - name: Generate Reference Images
+        run: python test/web/generate_fixtures.py
+
+      - name: Run NVS Encoder Tests
+        run: node --test test/web/nvs.test.mjs

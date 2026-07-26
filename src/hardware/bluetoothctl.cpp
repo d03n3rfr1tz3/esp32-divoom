@@ -2,6 +2,8 @@
 #include "bluetoothctl.h"
 
 #include "util.h"
+#include "settings.h"
+
 #include "wifictl.h"
 #include "input/base.h"
 #include "output/base.h"
@@ -14,7 +16,7 @@ BluetoothHandler::BluetoothHandler() {
  * setup functionality
 */
 void BluetoothHandler::setup(void) {
-    serialBT.begin(BLUETOOTH_NAME, true);
+    serialBT.begin(SettingsHandler::bluetoothName, true);
     serialBT.setTimeout(1000);
     serialBT.register_callback(event);
 }
