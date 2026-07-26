@@ -121,13 +121,13 @@ static void test_alarm_falls_back_to_off_when_time_is_short(void) {
 }
 
 /**
- * Known defect, frozen deliberately: parseMode fills a block-local `bool days[7]`
- * and never assigns it to `weekdays`, which stays nullptr, so show_alarm always
- * writes empty weekday bits. hass-divoom encodes mon/wed/fri as 0x2a here.
+ * weekday bits, sunday first: sun=1 .. sat=64, identical to hass-divoom. A token
+ * shorter than seven characters is ignored entirely rather than read past its end.
 */
-static void test_alarm_weekdays_are_ignored(void) {
-    TEST_ASSERT_EQUAL_HEX8(0x00, payload_at("alarm 1 07:30 1010100 1 1 101.1 80", 0, 5));
-    TEST_ASSERT_EQUAL_HEX8(0x00, payload_at("alarm 1 07:30 1111111 1 1 101.1 80", 0, 5));
+static void test_alarm_weekdays_are_encoded(void) {
+    TEST_ASSERT_EQUAL_HEX8(0x15, payload_at("alarm 1 07:30 1010100 1 1 101.1 80", 0, 5));
+    TEST_ASSERT_EQUAL_HEX8(0x7f, payload_at("alarm 1 07:30 1111111 1 1 101.1 80", 0, 5));
+    TEST_ASSERT_EQUAL_HEX8(0x00, payload_at("alarm 1 07:30 101 1 1 101.1 80", 0, 5));
 }
 
 /** neither the view nor the tool branch of show_scoreboard accepts version 2 */
@@ -179,7 +179,7 @@ int main(int, char**) {
     RUN_TEST(test_prefix_without_argument_emits_nothing);
     RUN_TEST(test_datetime_falls_back_to_zeroes_when_time_is_short);
     RUN_TEST(test_alarm_falls_back_to_off_when_time_is_short);
-    RUN_TEST(test_alarm_weekdays_are_ignored);
+    RUN_TEST(test_alarm_weekdays_are_encoded);
     RUN_TEST(test_scoreboard_with_unknown_version_emits_nothing);
     RUN_TEST(test_memorial_single_word_gains_a_trailing_space);
     RUN_TEST(test_memorial_without_text_emits_empty_name);

@@ -265,6 +265,7 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
 
         uint8_t value = 0;
         char* time = nullptr;
+        bool days[7] = { 0 };
         bool* weekdays = nullptr;
         uint8_t alarm = 0;
         uint8_t trigger = 0;
@@ -278,11 +279,11 @@ data_commands_t* Divoom::parseMode(char *buffer, size_t size) {
         if (token != NULL) time = token;
 
         token = strtok(NULL, " ");
-        if (token != NULL)  {
-            bool days[7];
+        if (token != NULL && strlen(token) >= 7)  {
             for (uint8_t i = 0; i < 7; i++) {
                 days[i] = (token[i] - '0') == 1;
             }
+            weekdays = days;
         }
 
         token = strtok(NULL, " ");
@@ -994,15 +995,20 @@ void Divoom::show_sleep(bool value, uint8_t sleeptime, uint8_t sleepmode, float 
     buffer[index++] = sleepmode; // sleep mode
     buffer[index++] = value ? 0x01 : 0x00; // on/off
 
-    uint16_t freq = frequency * 10;
-    if (freq > 1000) { // frequency
-        buffer[index++] = (uint8_t)(freq - 1000);
-        buffer[index++] = (uint8_t)(freq / 100);
+    if (frequency > 0) { // frequency
+        uint16_t freq = frequency * 10;
+        if (freq > 1000) {
+            buffer[index++] = (uint8_t)(freq - 1000);
+            buffer[index++] = (uint8_t)(freq / 100);
+        } else {
+            buffer[index++] = (uint8_t)(freq % 100);
+            buffer[index++] = (uint8_t)(freq / 100);
+        }
     } else {
-        buffer[index++] = (uint8_t)(freq % 100);
-        buffer[index++] = (uint8_t)(freq / 100);
+        buffer[index++] = 0x00;
+        buffer[index++] = 0x00;
     }
-    
+
     buffer[index++] = volume; // volume
     
     if (color != nullptr) { // color
