@@ -7,6 +7,8 @@
 AsyncServer tcpServer(TCP_PORT);
 AsyncClient* tcpClients[TCP_MAX];
 
+static frame_stream_t frameStream;
+
 /**
  * setup functionality
 */
@@ -16,7 +18,7 @@ void TcpInput::setup() {
 
     parsePacketQueue = xQueueCreate(3, sizeof(data_packet_t*));
     
-    BaseType_t taskResult = xTaskCreatePinnedToCore(queue, "ParsePacketTask", 5120, NULL, 1, &parsePacketHandle, 1);
+    BaseType_t taskResult = xTaskCreatePinnedToCore(queue, "ParsePacketTask", 3072, NULL, 1, &parsePacketHandle, 1);
     if (taskResult != pdPASS) ESP.restart();
 }
 
@@ -175,60 +177,11 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
 void TcpInput::queue(void *parameter) {
     esp_task_wdt_add(NULL);
 
-    size_t maxDefault = 1096;
-    size_t maxAnimations[] = {210, 213, 215};
-
-    size_t previousSize = 0;
-    uint8_t previousBuffer[maxDefault] = { 0x00 };
-
     for (;;) {
         data_packet_t* dataPacket;
         if (xQueueReceive(parsePacketQueue, &dataPacket, (TickType_t)25) == pdPASS) {
-            size_t off = 0;
-            size_t max = maxDefault;
-            size_t len = previousSize + dataPacket->size;
-            uint8_t *packetBuffer = dataPacket->data;
-
-            // prepare packet split size, if necessary
-            for (size_t maxAnimation : maxAnimations) {
-                size_t posAnimation = maxAnimation - 1;
-                if (len <= posAnimation) continue;
-
-                uint8_t *startBuffer = previousSize > 0 ? previousBuffer : packetBuffer;
-                uint8_t *endBuffer = previousSize > posAnimation ? previousBuffer : packetBuffer;
-                size_t endPosition = previousSize > posAnimation ? posAnimation : posAnimation - previousSize;
-                if (startBuffer[0] == 0x01 && startBuffer[3] == 0x49 && endBuffer[endPosition] == 0x02) max = maxAnimation; // animation stream detected. splitting accordingly
-            }
-
-            if (max < previousSize) max = previousSize;
-
-            // split buffer into corresponding max size packets, to make sure animation stream sends every frame as a separate packet
-            while (len > 0) {
-                size_t thisSize = 0;
-                uint8_t thisBuffer[max] = { 0x00 };
-
-                // prepare packet
-                size_t use = len > max ? max : len;
-                if (previousSize > 0) memcpy(thisBuffer, previousBuffer, previousSize);
-                memcpy(thisBuffer + previousSize, packetBuffer, use - previousSize);
-
-                // parse and process packet
-                TcpInput::parse(thisBuffer, use);
-                
-                // move pointer and reduce open length
-                off += use - previousSize;
-                packetBuffer += use - previousSize;
-                len = dataPacket->size - off;
-                previousSize = 0;
-
-                // copy rest into separate buffer instead of sending incomplete data, if there is another message in the queue
-                if (len > 0 && len <= max && packetBuffer[len - 1] != 0x02) {
-                    previousSize = len;
-                    memcpy(previousBuffer, packetBuffer, len);
-                    break;
-                }
-            }
-
+            // splitting along the frame structure sends every animation frame as a separate packet
+            appendFrames(&frameStream, dataPacket->data, dataPacket->size, TcpInput::parse);
             free(dataPacket);
         }
 
@@ -241,6 +194,7 @@ void TcpInput::queue(void *parameter) {
  * the parser for incoming data
 */
 void TcpInput::parse(const uint8_t *buffer, size_t size) {
+    if (size == 0) return;
 
     // recognize a connect statement and pass it into Bluetooth handler
     if (buffer[0] == 0x69 && size >= ESP_BD_ADDR_LEN + 1 && size <= ESP_BD_ADDR_LEN + 2) {

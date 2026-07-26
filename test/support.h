@@ -35,19 +35,23 @@ inline std::string format_commands(const data_commands_t* commands) {
     return result;
 }
 
+inline std::string fixture_path(const char* dir, const char* name, bool relative) {
+    std::string result = relative ? std::string("test/")
+                                  : std::string(PROJECT_DIR) + "/test/";
+    return result + dir + "/" + name + ".txt";
+}
+
 inline std::string golden_path(const char* name, bool relative) {
-    std::string result = relative ? std::string("test/goldens/")
-                                  : std::string(PROJECT_DIR) + "/test/goldens/";
-    return result + name + ".txt";
+    return fixture_path("goldens", name, relative);
 }
 
 /**
  * Binary mode is required: in text mode Windows translates '\n' to "\r\n", which
- * would make the goldens differ from the ones the Linux CI reads and writes.
+ * would make the fixtures differ from the ones the Linux CI reads and writes.
 */
-inline bool read_golden(const char* name, std::string& content) {
+inline bool read_fixture(const char* dir, const char* name, std::string& content) {
     for (int relative = 0; relative <= 1; relative++) {
-        FILE* file = fopen(golden_path(name, relative != 0).c_str(), "rb");
+        FILE* file = fopen(fixture_path(dir, name, relative != 0).c_str(), "rb");
         if (file == NULL) continue;
 
         char chunk[512];
@@ -62,6 +66,15 @@ inline bool read_golden(const char* name, std::string& content) {
     }
 
     return false;
+}
+
+inline bool read_golden(const char* name, std::string& content) {
+    return read_fixture("goldens", name, content);
+}
+
+/** recorded hass-divoom output, one hex-dumped frame per line */
+inline bool read_stream(const char* name, std::string& content) {
+    return read_fixture("streams", name, content);
 }
 
 inline bool write_golden(const char* name, const std::string& content) {
