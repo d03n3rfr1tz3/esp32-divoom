@@ -35,3 +35,29 @@ jobs:
         with:
           name: esp32-divoom
           path: .pio/build/esp32dev/*.bin
+
+  esphome:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+            ~/.espressif
+          key: ${{ runner.os }}-esphome
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install ESPHome
+        run: pip install --upgrade esphome
+
+      - name: Prepare ESPHome Configuration
+        run: |
+          sed 's|source: github://d03n3rfr1tz3/esp32-divoom|source: { type: local, path: components }|' esphome-example.yaml > esphome-ci.yaml
+          printf 'wifi_ssid: ci\nwifi_password: ci-password\nmqtt_password: ci-password\n' > secrets.yaml
+
+      - name: Build ESPHome Project
+        run: esphome compile esphome-ci.yaml

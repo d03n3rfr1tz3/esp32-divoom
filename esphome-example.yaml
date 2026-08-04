@@ -1,0 +1,50 @@
+# Example configuration for running esp32-divoom as an ESPHome device.
+# Copy it into your ESPHome dashboard, adjust the substitutions and flash it.
+
+substitutions:
+  device_name: divoom-proxy
+  mqtt_broker: 192.168.1.10
+  mqtt_username: divoom
+  mqtt_password: !secret mqtt_password
+
+esphome:
+  name: ${device_name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+external_components:
+  - source: github://d03n3rfr1tz3/esp32-divoom
+    components: [divoom]
+
+# optional; without it the device is reachable over TCP only
+mqtt:
+  broker: ${mqtt_broker}
+  username: ${mqtt_username}
+  password: ${mqtt_password}
+  # matches what the PlatformIO build registers programmatically
+  will_message:
+    topic: divoom/proxy
+    payload: offline
+
+divoom:
+  bluetooth_name: ${device_name}
+  # bluetooth_retry: 3
+  # bluetooth_filter: true
+  # tcp_port: 7777
+  # tcp_max_clients: 3
+  # mqtt_topic: "divoom/%s"
+  # status_led: GPIO2
