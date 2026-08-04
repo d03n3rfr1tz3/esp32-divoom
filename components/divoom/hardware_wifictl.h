@@ -3,10 +3,8 @@
     #define _WIFI_H
 
     #include "config.h"
-    
-    #include "Arduino.h"
-    #include "ESPmDNS.h"
-    #include "WiFi.h"
+
+    #include "platform.h"
 
     class WifiHandler {
         public:
@@ -16,15 +14,5 @@
             static bool check(bool fast);
             static void connect(void);
             static bool mdns(void);
-
-        private:
-            inline static bool isConnected;
-            inline static bool isMdnsReady;
-            inline static uint8_t retryCount;
-            inline static unsigned long timer;
-
-            static void scanned(WiFiEvent_t event, WiFiEventInfo_t info);
-            static void connected(WiFiEvent_t event, WiFiEventInfo_t info);
-            static void disconnected(WiFiEvent_t event, WiFiEventInfo_t info);
     };
 #endif

@@ -1,10 +1,10 @@
 
-#include "serial.h"
+#include "input_serial.h"
 
-#include "input/base.h"
-#include "output/base.h"
+#include "input_base.h"
+#include "output_base.h"
 
-#include "divoom/divoom.h"
+#include "divoom.h"
 
 HardwareSerial serialIn(0);
 

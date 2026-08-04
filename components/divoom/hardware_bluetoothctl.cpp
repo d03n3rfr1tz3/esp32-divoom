@@ -1,12 +1,13 @@
 
-#include "bluetoothctl.h"
+#include "hardware_bluetoothctl.h"
 
+#include "platform.h"
 #include "util.h"
 #include "settings.h"
 
-#include "wifictl.h"
-#include "input/base.h"
-#include "output/base.h"
+#include "hardware_wifictl.h"
+#include "input_base.h"
+#include "output_base.h"
 
 BluetoothHandler::BluetoothHandler() {
     timer = millis();
@@ -30,7 +31,7 @@ void BluetoothHandler::loop(void) {
 
         if (!isConnecting && !isDiscovering) {
             BaseType_t taskResult = xTaskCreatePinnedToCore(task, "BluetoothTask", 2048, NULL, 1, &discoverHandle, 1);
-            if (taskResult != pdPASS) ESP.restart();
+            if (taskResult != pdPASS) DIVOOM_FAIL("could not create the bluetooth task");
         }
     }
 }
@@ -75,7 +76,7 @@ bool BluetoothHandler::check(void) {
 bool BluetoothHandler::connect(BTAddress address, uint16_t channel) { return connect(address, channel, nullptr); };
 bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *pin) {
     if (isConnected) BluetoothHandler::disconnect();
-    if (pin != nullptr) serialBT.setPin(pin);
+    if (pin != nullptr) DIVOOM_BT_SETPIN(serialBT, pin);
     delay(10);
     
     isConnecting = true;
@@ -112,7 +113,7 @@ void BluetoothHandler::discover(int timeout) {
     if (devices == nullptr) {
         // BluetoothSerial sets _isRemoteAddressSet on connect and never clears it, so discovery stays refused until a restart.
         // This is quite an old bug, that was never fixed and IMO is a major oversight.
-        ESP.restart();
+        DIVOOM_FAIL("discovery refused, bluetooth needs a restart");
         return;
     }
 
@@ -133,8 +134,8 @@ void BluetoothHandler::discover(int timeout) {
 
         // pass it into zeroconf
         if (supported && WifiHandler::mdns()) {
-            MDNS.addServiceTxt("_divoom_esp32", "_tcp", "device_mac", device->getAddress().toString().c_str());
-            MDNS.addServiceTxt("_divoom_esp32", "_tcp", "device_name", name.c_str());
+            DIVOOM_MDNS_TXT("_divoom_esp32", "_tcp", "device_mac", device->getAddress().toString().c_str());
+            DIVOOM_MDNS_TXT("_divoom_esp32", "_tcp", "device_name", name.c_str());
         }
 
         // pass it into the input handlers for an advertise announcement

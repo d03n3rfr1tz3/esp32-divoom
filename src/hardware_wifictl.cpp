@@ -1,11 +1,22 @@
 
-#include "wifictl.h"
+#include "hardware_wifictl.h"
 
 #include "util.h"
 #include "settings.h"
 
-#include "input/base.h"
-#include "output/base.h"
+#include "input_base.h"
+#include "output_base.h"
+
+#include "WiFi.h"
+
+static bool isConnected;
+static bool isMdnsReady;
+static uint8_t retryCount;
+static unsigned long timer;
+
+static void scanned(WiFiEvent_t event, WiFiEventInfo_t info);
+static void connected(WiFiEvent_t event, WiFiEventInfo_t info);
+static void disconnected(WiFiEvent_t event, WiFiEventInfo_t info);
 
 WifiHandler::WifiHandler() {
     timer = millis();
@@ -42,7 +53,7 @@ void WifiHandler::loop(void) {
 */
 bool WifiHandler::check(bool fast) {
     if (fast) return isConnected;
-    
+
     if (WiFi.status() == WL_CONNECTED)
     {
         isConnected = true;
@@ -96,14 +107,14 @@ bool WifiHandler::mdns(void) {
 /**
  * callback for when the scan finished
 */
-void WifiHandler::scanned(WiFiEvent_t event, WiFiEventInfo_t info) {
-    if (info.wifi_scan_done.number > 0) connect();
+static void scanned(WiFiEvent_t event, WiFiEventInfo_t info) {
+    if (info.wifi_scan_done.number > 0) WifiHandler::connect();
 }
 
 /**
  * callback for when we connected to a network
 */
-void WifiHandler::connected(WiFiEvent_t event, WiFiEventInfo_t info) {
+static void connected(WiFiEvent_t event, WiFiEventInfo_t info) {
     isConnected = true;
     retryCount = 0;
 
@@ -125,6 +136,6 @@ void WifiHandler::connected(WiFiEvent_t event, WiFiEventInfo_t info) {
 /**
  * callback for when we disconnected from a network
 */
-void WifiHandler::disconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
+static void disconnected(WiFiEvent_t event, WiFiEventInfo_t info) {
     isConnected = false;
 }

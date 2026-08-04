@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string>
 
-#include "divoom/divoom.h"
+#include "divoom.h"
 
 /** injected by test/inject_project_dir.py; relative paths are the fallback */
 #ifndef PROJECT_DIR

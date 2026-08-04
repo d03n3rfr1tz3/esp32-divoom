@@ -4,39 +4,91 @@
     #ifndef LED_BUILTIN
         #define LED_BUILTIN  0
     #endif
-    
+
+    #ifndef DIVOOM_STATUS_LED
+        #define DIVOOM_STATUS_LED LED_BUILTIN
+    #endif
+
+
     /* Bluetooth Configuration */
-    #define BLUETOOTH_NAME   "ESP32-Divoom"
-    #define BLUETOOTH_RETRY  3
-    #define BLUETOOTH_FILTER true
-
-    /* WiFi Configuration */
-    #define WIFI_NAME        "ESP32-Divoom"
-    #define WIFI_RETRY       5
-
-    #define WIFISSID1        ""
-    #define WIFIPASS1        ""
-
-    #define WIFISSID2        ""
-    #define WIFIPASS2        ""
+    #ifndef BLUETOOTH_RETRY
+        #define BLUETOOTH_RETRY  3
+    #endif
+    #ifndef BLUETOOTH_FILTER
+        #define BLUETOOTH_FILTER true
+    #endif
 
     /* TCP Configuration */
-    #define TCP_PORT         7777
-    #define TCP_MAX          3
+    #ifndef TCP_PORT
+        #define TCP_PORT         7777
+    #endif
+    #ifndef TCP_MAX
+        #define TCP_MAX          3
+    #endif
 
-    /* Serial Output Configuration */
-    #define SERIAL_OUT_RX    -1
-    #define SERIAL_OUT_TX    -1
+        /* PlatformIO Configuration */
+    #ifndef DIVOOM_PLATFORM_ESPHOME
 
-    /* MQTT Configuration */
-    #define MQTT_CLIENT      "ESP32-Divoom"
-    #define MQTT_HOST        ""
-    #define MQTT_PORT        1883
-    #define MQTT_USER        ""
-    #define MQTT_PASS        ""
-    #define MQTT_TOPIC       "divoom/%s"
+        /* Bluetooth Configuration */
+        #ifndef BLUETOOTH_NAME
+            #define BLUETOOTH_NAME   "ESP32-Divoom"
+        #endif
+
+        /* WiFi Configuration */
+        #ifndef WIFI_NAME
+            #define WIFI_NAME        "ESP32-Divoom"
+        #endif
+        #ifndef WIFI_RETRY
+            #define WIFI_RETRY       5
+        #endif
+
+        #ifndef WIFISSID1
+            #define WIFISSID1        ""
+        #endif
+        #ifndef WIFIPASS1
+            #define WIFIPASS1        ""
+        #endif
+
+        #ifndef WIFISSID2
+            #define WIFISSID2        ""
+        #endif
+        #ifndef WIFIPASS2
+            #define WIFIPASS2        ""
+        #endif
+
+        /* Serial Output Configuration */
+        #ifndef SERIAL_OUT_RX
+            #define SERIAL_OUT_RX    -1
+        #endif
+        #ifndef SERIAL_OUT_TX
+            #define SERIAL_OUT_TX    -1
+        #endif
+
+        /* MQTT Configuration */
+        #ifndef MQTT_CLIENT
+            #define MQTT_CLIENT      "ESP32-Divoom"
+        #endif
+        #ifndef MQTT_HOST
+            #define MQTT_HOST        ""
+        #endif
+        #ifndef MQTT_PORT
+            #define MQTT_PORT        1883
+        #endif
+        #ifndef MQTT_USER
+            #define MQTT_USER        ""
+        #endif
+        #ifndef MQTT_PASS
+            #define MQTT_PASS        ""
+        #endif
+        #ifndef MQTT_TOPIC
+            #define MQTT_TOPIC       "divoom/%s"
+        #endif
+    #endif
 #endif
 
-#if __has_include("config_local.h")
-# include "config_local.h"
+/* PlatformIO Configuration */
+#ifndef DIVOOM_PLATFORM_ESPHOME
+    #if __has_include("config_local.h")
+    #   include "config_local.h"
+    #endif
 #endif

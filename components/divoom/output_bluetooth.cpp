@@ -1,10 +1,10 @@
 
-#include "bluetooth.h"
+#include "output_bluetooth.h"
 
-#include "hardware/bluetoothctl.h"
+#include "hardware_bluetoothctl.h"
 
-#include "input/base.h"
-#include "output/base.h"
+#include "input_base.h"
+#include "output_base.h"
 
 /**
  * setup functionality, that connects to or disconnects from a bluetooth device

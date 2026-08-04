@@ -3,6 +3,7 @@
     #define _DIVOOM_H
     
     #include "Arduino.h"
+    #include <string>
 
     typedef struct {
         uint8_t data[256];

@@ -4,8 +4,8 @@
     
     #include "Arduino.h"
 
-    #include "serial.h"
-    #include "bluetooth.h"
+    #include "output_bluetooth.h"
+    #include "output_serial.h"
 
     class BaseOutput {
         public:

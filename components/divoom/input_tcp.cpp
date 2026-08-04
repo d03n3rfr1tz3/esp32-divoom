@@ -1,10 +1,13 @@
 
-#include "tcp.h"
+#include "input_tcp.h"
 
-#include "input/base.h"
-#include "output/base.h"
+#include "platform.h"
+#include "settings.h"
+#include "input_base.h"
+#include "output_base.h"
 
-AsyncServer tcpServer(TCP_PORT);
+// constructed in setup, so the port can come from the settings
+AsyncServer* tcpServer = nullptr;
 AsyncClient* tcpClients[TCP_MAX];
 
 static frame_stream_t frameStream;
@@ -13,13 +16,14 @@ static frame_stream_t frameStream;
  * setup functionality
 */
 void TcpInput::setup() {
-    tcpServer.onClient(connection, &tcpServer);
-    tcpServer.begin();
+    tcpServer = new AsyncServer(SettingsHandler::tcpPort);
+    tcpServer->onClient(connection, tcpServer);
+    tcpServer->begin();
 
     parsePacketQueue = xQueueCreate(3, sizeof(data_packet_t*));
     
     BaseType_t taskResult = xTaskCreatePinnedToCore(queue, "ParsePacketTask", 3072, NULL, 1, &parsePacketHandle, 1);
-    if (taskResult != pdPASS) ESP.restart();
+    if (taskResult != pdPASS) DIVOOM_FAIL("could not create the parse packet task");
 }
 
 /**
@@ -118,7 +122,7 @@ int8_t TcpInput::clear() {
 */
 void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
     data_packet_t* dataPacket = (data_packet_t*)MALLOC(sizeof(data_packet_t));
-    if (!dataPacket) ESP.restart();
+    if (!dataPacket) DIVOOM_FAIL("out of memory for an incoming packet");
 
     if (size > sizeof(dataPacket->data)) size = sizeof(dataPacket->data);
     dataPacket->size = size;
@@ -175,7 +179,7 @@ void TcpInput::disconnect(void *arg, AsyncClient *client) {
  * the queue handler
 */
 void TcpInput::queue(void *parameter) {
-    esp_task_wdt_add(NULL);
+    DIVOOM_WDT_ADD();
 
     for (;;) {
         data_packet_t* dataPacket;
@@ -185,7 +189,7 @@ void TcpInput::queue(void *parameter) {
             free(dataPacket);
         }
 
-        esp_task_wdt_reset();
+        DIVOOM_WDT_RESET();
         vTaskDelay(1);
     }
 }

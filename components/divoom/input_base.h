@@ -4,9 +4,9 @@
     
     #include "Arduino.h"
 
-    #include "mqtt.h"
-    #include "serial.h"
-    #include "tcp.h"
+    #include "input_mqtt.h"
+    #include "input_serial.h"
+    #include "input_tcp.h"
 
     class BaseInput {
         public:

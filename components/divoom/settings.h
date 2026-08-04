@@ -24,5 +24,9 @@
             inline static String mqttClient;
             inline static String mqttTopic;
             inline static uint16_t mqttPort;
+
+            // not backed by NVS; the PlatformIO build keeps the compile time
+            // default, the ESPHome variant sets it from its YAML
+            inline static uint16_t tcpPort = TCP_PORT;
     };
 #endif
