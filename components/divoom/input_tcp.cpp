@@ -122,7 +122,10 @@ int8_t TcpInput::clear() {
 */
 void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
     data_packet_t* dataPacket = (data_packet_t*)MALLOC(sizeof(data_packet_t));
-    if (!dataPacket) DIVOOM_FAIL("out of memory for an incoming packet");
+    if (!dataPacket) {
+        DIVOOM_FAIL("out of memory for an incoming packet");
+        return;
+    }
 
     if (size > sizeof(dataPacket->data)) size = sizeof(dataPacket->data);
     dataPacket->size = size;

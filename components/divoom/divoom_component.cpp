@@ -12,21 +12,21 @@
 #include "input_base.h"
 #include "output_base.h"
 
+#include "esphome/core/application.h"
 #include "esphome/core/log.h"
 
 namespace esphome {
 namespace divoom {
 
 static const char *const TAG = "divoom";
-static DivoomComponent *instance = nullptr;
+static volatile bool failPending = false;
+static const char *failReason = nullptr;
 
 /**
  * setup functionality, same order as main.cpp does it for PlatformIO, only
  * without the watchdog that ESPHome already owns
 */
 void DivoomComponent::setup() {
-    instance = this;
-
     SettingsHandler::setup();
     BluetoothHandler::setup();
     WifiHandler::setup();
@@ -38,6 +38,12 @@ void DivoomComponent::setup() {
  * loop functionality
 */
 void DivoomComponent::loop() {
+    if (failPending) {
+        ESP_LOGE(TAG, "restarting: %s", failReason);
+        App.safe_reboot();
+        return;
+    }
+
     BluetoothHandler::loop();
     WifiHandler::loop();
     BaseInput::loop();
@@ -66,15 +72,11 @@ void DivoomComponent::set_mqtt_topic(const char *topic) { SettingsHandler::mqttT
 }  // namespace esphome
 
 /**
- * what the shared core calls where the PlatformIO build reboots; ESPHome reports
- * the failure through the component and keeps the rest of the device alive
+ * mark the component as failure, that needs a restart (like BT discovery stuck).
 */
 void divoomFail(const char *reason) {
-    ESP_LOGE("divoom", "%s", reason);
-    if (esphome::divoom::instance != nullptr) {
-        esphome::divoom::instance->status_set_error();
-        esphome::divoom::instance->mark_failed();
-    }
+    esphome::divoom::failReason = reason;
+    esphome::divoom::failPending = true;
 }
 
 #endif

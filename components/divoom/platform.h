@@ -11,8 +11,9 @@
     #ifdef DIVOOM_PLATFORM_ESPHOME
         #include "mdns.h"
 
-        // ESPHome owns the task watchdog and reports failures through the
-        // component instead of rebooting. Defined in divoom_component.cpp.
+        // ESPHome owns the task watchdog. A failure reboots just like it does on
+        // PlatformIO, only through App.safe_reboot() and deferred into the main
+        // task, so ESPHome can tear itself down first.
         void divoomFail(const char *reason);
 
         #define DIVOOM_FAIL(reason) divoomFail(reason)
