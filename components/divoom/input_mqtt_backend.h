@@ -4,9 +4,7 @@
 
     #include "Arduino.h"
 
-    // Transport seam for MqttInput. PlatformIO implements this over AsyncMqttClient
-    // in src/input_mqtt_backend.cpp, the ESPHome variant over MQTTClientComponent.
-    // Incoming events go back into MqttInput::connected/disconnected/message.
+    // the mqtt transport of MqttInput, whose events go back into it
     class MqttBackend {
         public:
             static void setup(const char *clientId, const char *user, const char *pass, const char *host, uint16_t port, const char *willTopic);

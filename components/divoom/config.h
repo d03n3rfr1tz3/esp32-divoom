@@ -26,7 +26,7 @@
         #define TCP_MAX          3
     #endif
 
-        /* PlatformIO Configuration */
+    /* PlatformIO Configuration */
     #ifndef DIVOOM_PLATFORM_ESPHOME
 
         /* Bluetooth Configuration */

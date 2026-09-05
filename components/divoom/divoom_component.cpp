@@ -23,8 +23,7 @@ static volatile bool failPending = false;
 static const char *failReason = nullptr;
 
 /**
- * setup functionality, same order as main.cpp does it for PlatformIO, only
- * without the watchdog that ESPHome already owns
+ * setup functionality
 */
 void DivoomComponent::setup() {
     SettingsHandler::setup();
@@ -72,7 +71,7 @@ void DivoomComponent::set_mqtt_topic(const char *topic) { SettingsHandler::mqttT
 }  // namespace esphome
 
 /**
- * mark the component as failure, that needs a restart (like BT discovery stuck).
+ * marks a failure, that the loop then restarts from the main task
 */
 void divoomFail(const char *reason) {
     esphome::divoom::failReason = reason;
@@ -80,7 +79,7 @@ void divoomFail(const char *reason) {
 }
 
 /**
- * what the shared core calls where the PlatformIO build stays silent.
+ * logs a message of the shared core
 */
 void divoomLog(const char *message) {
     ESP_LOGE(esphome::divoom::TAG, "%s", message);

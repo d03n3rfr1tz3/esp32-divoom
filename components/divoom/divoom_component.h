@@ -6,8 +6,7 @@ namespace esphome {
 namespace divoom {
 
 /**
- * the entry point of the ESPHome variant, mirroring what main.cpp does for the
- * PlatformIO build; every setter is filled by the codegen before setup runs
+ * the entry point of the ESPHome variant, whose setters the codegen fills before setup
 */
 class DivoomComponent : public Component {
     public:
@@ -15,8 +14,7 @@ class DivoomComponent : public Component {
         void loop() override;
         void dump_config() override;
 
-        // the shared core registers its zeroconf service on top of the mdns
-        // component, which sets itself up at AFTER_CONNECTION
+        // the zeroconf service needs the mdns component, which starts at AFTER_CONNECTION
         float get_setup_priority() const override { return setup_priority::LATE; }
 
         void set_bluetooth_name(const char *name);

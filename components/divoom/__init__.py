@@ -25,7 +25,7 @@ CODEOWNERS = ["@d03n3rfr1tz3"]
 DEPENDENCIES = ["esp32", "network"]
 AUTO_LOAD = ["async_tcp", "mdns"]
 
-# bluetooth classic and BLE do not coexist on the classic ESP32 in this setup
+# the br/edr only controller below leaves no room for the BLE components
 CONFLICTS_WITH = ["esp32_ble", "esp32_ble_tracker", "esp32_improv", "bluetooth_proxy"]
 
 CONF_BLUETOOTH_NAME = "bluetooth_name"
@@ -41,7 +41,7 @@ DivoomComponent = divoom_ns.class_("DivoomComponent", cg.Component)
 
 
 def validate_topic_format(value):
-    """mirrors isValidTopicFormat from validate.h"""
+    """validates that the topic contains exactly one '%s' placeholder"""
     value = cv.string_strict(value)
     if value.count("%s") != 1:
         raise cv.Invalid("the topic has to contain exactly one '%s' placeholder")
@@ -70,8 +70,7 @@ def _final_validate(config):
     if mqtt_config is None:
         return config
 
-    # the PlatformIO build registers its last will programmatically, ESPHome only
-    # knows the one from its own mqtt block, so it has to match by hand
+    # the last will belongs to the mqtt block, so it has to match the state topic
     expected_topic = config[CONF_MQTT_TOPIC] % "proxy"
     will = mqtt_config.get(CONF_WILL_MESSAGE) or {}
     if will.get(CONF_TOPIC) != expected_topic or will.get(CONF_PAYLOAD) != "offline":
@@ -88,8 +87,7 @@ FINAL_VALIDATE_SCHEMA = _final_validate
 
 
 async def to_code(config):
-    # ESPHome enables CONFIG_ARDUINO_SELECTIVE_COMPILATION and opts out of every
-    # Arduino library it does not use itself; add_library re-enables them
+    # arduino libraries are compiled selectively, so ours have to be added back
     cg.add_library("BluetoothSerial", None)
     cg.add_library("WiFi", None)
 
@@ -121,8 +119,7 @@ async def to_code(config):
     cg.add(var.set_tcp_port(config[CONF_TCP_PORT]))
     cg.add(var.set_mqtt_topic(config[CONF_MQTT_TOPIC]))
 
-    # the connection itself belongs to ESPHomes mqtt component; the shared core
-    # only needs the same values to decide whether MQTT is active at all
+    # the same values as the mqtt block, so mqtt gets used at all
     mqtt_config = CORE.config.get(CONF_MQTT)
     if mqtt_config is not None:
         cg.add(var.set_mqtt_host(mqtt_config[CONF_BROKER]))

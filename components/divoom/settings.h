@@ -25,8 +25,7 @@
             inline static String mqttTopic;
             inline static uint16_t mqttPort;
 
-            // not backed by NVS; the PlatformIO build keeps the compile time
-            // default, the ESPHome variant sets it from its YAML
+            // not backed by NVS, so it keeps the compile time default unless set
             inline static uint16_t tcpPort = TCP_PORT;
     };
 #endif

@@ -35,7 +35,7 @@ mqtt:
   broker: ${mqtt_broker}
   username: ${mqtt_username}
   password: ${mqtt_password}
-  # matches what the PlatformIO build registers programmatically
+  # the state topic that the divoom component publishes on
   will_message:
     topic: divoom/proxy
     payload: offline

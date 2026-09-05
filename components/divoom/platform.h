@@ -4,29 +4,24 @@
 
     #include "Arduino.h"
 
-    // The shared core builds both as the PlatformIO firmware and as an ESPHome
-    // component. Every difference between the two is concentrated here, so the
-    // PlatformIO branch expands to exactly the code that was inline before.
+    // every difference between the PlatformIO firmware and the ESPHome component
+    // is concentrated here
 
     #ifdef DIVOOM_PLATFORM_ESPHOME
         #include "mdns.h"
 
-        // ESPHome owns the task watchdog. A failure reboots just like it does on
-        // PlatformIO, only through App.safe_reboot() and deferred into the main
-        // task, so ESPHome can tear itself down first.
+        // restarts deferred into the main task, so ESPHome can tear itself down first
         void divoomFail(const char *reason);
-
-        // for what is worth reporting but not worth a restart. ESPHome has a
-        // logger, PlatformIO has none. Also in divoom_component.cpp.
         void divoomLog(const char *message);
 
         #define DIVOOM_FAIL(reason) divoomFail(reason)
         #define DIVOOM_LOG(message) divoomLog(message)
+
+        // ESPHome owns the task watchdog
         #define DIVOOM_WDT_ADD()    ((void)0)
         #define DIVOOM_WDT_RESET()  ((void)0)
 
-        // ESPHome talks to the IDF responder directly instead of going through
-        // ESPmDNS, so the txt records are set through its own api.
+        // ESPHome uses the IDF responder instead of ESPmDNS
         #define DIVOOM_MDNS_TXT(service, proto, key, value) mdns_service_txt_item_set(service, proto, key, value)
     #else
         #include "ESPmDNS.h"
@@ -40,17 +35,15 @@
         #define DIVOOM_MDNS_TXT(service, proto, key, value) MDNS.addServiceTxt(service, proto, key, value)
     #endif
 
-    // BluetoothSerial::setPin gained a length parameter in arduino-esp32 3.x.
-    // PlatformIO pins 2.0.17, ESPHome ships 3.3.10.
+    // BluetoothSerial::setPin takes the pin length since arduino-esp32 3.x
     #if ESP_ARDUINO_VERSION_MAJOR >= 3
         #define DIVOOM_BT_SETPIN(bt, pin) (bt).setPin(pin, strlen(pin))
     #else
         #define DIVOOM_BT_SETPIN(bt, pin) (bt).setPin(pin)
     #endif
 
-    // BluetoothSerial::begin asks the controller for BTDM, which the br/edr only
-    // controller of the ESPHome build refuses. Its third parameter picks classic
-    // instead and only exists since arduino-esp32 3.x.
+    // BluetoothSerial::begin defaults to BTDM, which a br/edr only controller refuses;
+    // its third parameter picks classic and exists since arduino-esp32 3.x
     #ifdef DIVOOM_PLATFORM_ESPHOME
         #define DIVOOM_BT_BEGIN(bt, name) (bt).begin(name, true, true)
     #else

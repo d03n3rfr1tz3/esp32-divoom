@@ -13,7 +13,7 @@ void tearDown(void) {}
  * `Divoom d = Divoom()` value-initializes the instance. A plain `Divoom d;`
  * would leave commands.count indeterminate (the class has no constructor),
  * causing a write past the command[5] array. Both production callers do the
- * same, see src/input/serial.cpp:136 and components/divoom/input/mqtt.cpp:228.
+ * same, see the serial and mqtt input.
 */
 static void test_parsemode_links_and_emits_one_command(void) {
     char buffer[64] = { 0 };

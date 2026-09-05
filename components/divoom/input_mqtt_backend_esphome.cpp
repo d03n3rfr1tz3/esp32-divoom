@@ -13,17 +13,18 @@ using esphome::mqtt::global_mqtt_client;
 using esphome::mqtt::MQTTClientDisconnectReason;
 
 /**
- * connection, credentials and last will belong to ESPHomes mqtt block, so only
- * the event handlers are wired up here
+ * setup functionality, where only the event handlers are ours; connection,
+ * credentials and last will come from the mqtt block of the YAML
 */
 void MqttBackend::setup(const char *clientId, const char *user, const char *pass, const char *host, uint16_t port, const char *willTopic) {
     global_mqtt_client->set_on_connect([](bool sessionPresent) { MqttInput::connected(sessionPresent); });
     global_mqtt_client->set_on_disconnect([](MQTTClientDisconnectReason reason) { MqttInput::disconnected(); });
 }
 
-void MqttBackend::connect() {
-    // ESPHome keeps the connection up on its own
-}
+/**
+ * connects, which ESPHome already does on its own
+*/
+void MqttBackend::connect() {}
 
 bool MqttBackend::connected() {
     return global_mqtt_client->is_connected();
