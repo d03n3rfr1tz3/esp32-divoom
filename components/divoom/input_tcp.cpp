@@ -22,7 +22,7 @@ void TcpInput::setup() {
 
     parsePacketQueue = xQueueCreate(3, sizeof(data_packet_t*));
     
-    BaseType_t taskResult = xTaskCreatePinnedToCore(queue, "ParsePacketTask", 3072, NULL, 1, &parsePacketHandle, 1);
+    BaseType_t taskResult = xTaskCreatePinnedToCore(queue, "ParsePacketTask", DIVOOM_TASK_STACK_PARSE, NULL, 1, &parsePacketHandle, 1);
     if (taskResult != pdPASS) DIVOOM_FAIL("could not create the parse packet task");
 }
 

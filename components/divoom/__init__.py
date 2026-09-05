@@ -102,6 +102,9 @@ async def to_code(config):
     add_idf_sdkconfig_option("CONFIG_BTDM_CTRL_MODE_BLE_ONLY", False)
     add_idf_sdkconfig_option("CONFIG_BTDM_CTRL_MODE_BTDM", False)
 
+    # our spp callback publishes over mqtt, which needs the same stack as arduino gives it
+    add_idf_sdkconfig_option("CONFIG_BT_BTC_TASK_STACK_SIZE", 8192)
+
     cg.add_build_flag("-DDIVOOM_PLATFORM_ESPHOME")
     cg.add_build_flag(f"-DBLUETOOTH_RETRY={config[CONF_BLUETOOTH_RETRY]}")
     cg.add_build_flag(

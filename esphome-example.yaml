@@ -35,6 +35,8 @@ mqtt:
   broker: ${mqtt_broker}
   username: ${mqtt_username}
   password: ${mqtt_password}
+  # publishes from a task of its own instead of the caller
+  idf_send_async: true
   # the state topic that the divoom component publishes on
   will_message:
     topic: divoom/proxy

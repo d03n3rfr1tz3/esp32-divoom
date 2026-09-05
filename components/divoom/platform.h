@@ -23,6 +23,10 @@
 
         // ESPHome uses the IDF responder instead of ESPmDNS
         #define DIVOOM_MDNS_TXT(service, proto, key, value) mdns_service_txt_item_set(service, proto, key, value)
+
+        // ESPHome sends mqtt and log lines on the stack of the calling task
+        #define DIVOOM_TASK_STACK_BLUETOOTH 6144
+        #define DIVOOM_TASK_STACK_PARSE     8192
     #else
         #include "ESPmDNS.h"
         #include "esp_task_wdt.h"
@@ -33,6 +37,9 @@
         #define DIVOOM_WDT_RESET()  esp_task_wdt_reset()
 
         #define DIVOOM_MDNS_TXT(service, proto, key, value) MDNS.addServiceTxt(service, proto, key, value)
+
+        #define DIVOOM_TASK_STACK_BLUETOOTH 2048
+        #define DIVOOM_TASK_STACK_PARSE     3072
     #endif
 
     // BluetoothSerial::setPin takes the pin length since arduino-esp32 3.x

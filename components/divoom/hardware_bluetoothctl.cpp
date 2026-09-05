@@ -30,7 +30,7 @@ void BluetoothHandler::loop(void) {
         timer = millis();
 
         if (!isConnecting && !isDiscovering) {
-            BaseType_t taskResult = xTaskCreatePinnedToCore(task, "BluetoothTask", 2048, NULL, 1, &discoverHandle, 1);
+            BaseType_t taskResult = xTaskCreatePinnedToCore(task, "BluetoothTask", DIVOOM_TASK_STACK_BLUETOOTH, NULL, 1, &discoverHandle, 1);
             if (taskResult != pdPASS) DIVOOM_FAIL("could not create the bluetooth task");
         }
     }
