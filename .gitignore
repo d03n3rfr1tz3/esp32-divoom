@@ -1,7 +1,11 @@
+.esphome
 .pio
 .vs/**
 .vscode/**
+__pycache__
 config_local.h
+esphome-ci.yaml
+secrets.yaml
 test/web/fixtures
 web/firmware
 web/vendor

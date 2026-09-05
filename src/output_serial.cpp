@@ -1,10 +1,10 @@
 
-#include "serial.h"
+#include "output_serial.h"
 
 #include "config.h"
 
-#include "input/base.h"
-#include "output/base.h"
+#include "input_base.h"
+#include "output_base.h"
 
 HardwareSerial serialOut(1);
 

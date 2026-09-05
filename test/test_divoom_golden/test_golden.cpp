@@ -4,7 +4,7 @@
 
 #include "cases.h"
 #include "support.h"
-#include "divoom/divoom.h"
+#include "divoom.h"
 
 void setUp(void) {}
 void tearDown(void) {}

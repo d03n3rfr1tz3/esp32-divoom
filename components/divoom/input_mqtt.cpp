@@ -1,18 +1,16 @@
 
 
-#include "mqtt.h"
+#include "input_mqtt.h"
 
 #include "settings.h"
 
-#include "hardware/bluetoothctl.h"
-#include "hardware/wifictl.h"
+#include "hardware_bluetoothctl.h"
+#include "hardware_wifictl.h"
 
-#include "input/base.h"
-#include "output/base.h"
+#include "input_base.h"
+#include "output_base.h"
 
-#include "divoom/divoom.h"
-
-AsyncMqttClient mqttClient;
+#include "divoom.h"
 
 MqttInput::MqttInput() {
     timer = millis();
@@ -34,15 +32,9 @@ void MqttInput::setup() {
     snprintf(topicBluetooth, sizeof( topicBluetooth ), topicPattern, "bluetooth");
     snprintf(topicCommand, sizeof( topicCommand ), topicPattern, "command");
 
-    mqttClient.setKeepAlive(10);
-    mqttClient.setClientId(SettingsHandler::mqttClient.c_str());
-    mqttClient.setCredentials(SettingsHandler::mqttUser.c_str(), SettingsHandler::mqttPass.c_str());
-    mqttClient.setServer(SettingsHandler::mqttHost.c_str(), SettingsHandler::mqttPort);
-    mqttClient.setWill(topicState, 1, true, "offline");
-
-    mqttClient.onConnect(connected);
-    mqttClient.onDisconnect(disconnected);
-    mqttClient.onMessage(message);
+    MqttBackend::setup(SettingsHandler::mqttClient.c_str(),
+                       SettingsHandler::mqttUser.c_str(), SettingsHandler::mqttPass.c_str(),
+                       SettingsHandler::mqttHost.c_str(), SettingsHandler::mqttPort, topicState);
 }
 
 /**
@@ -70,15 +62,15 @@ bool MqttInput::check(void) {
     if (!mqttEnabled()) return false;
     if (!wasWifiConnected) return false;
 
-    if (mqttClient.connected())
+    if (MqttBackend::connected())
     {
         isConnected = true;
         return true;
     }
     else
     {
-        mqttClient.connect();
-        return isConnected = mqttClient.connected();
+        MqttBackend::connect();
+        return isConnected = MqttBackend::connected();
     }
 }
 
@@ -89,12 +81,12 @@ void MqttInput::update(void) {
     if (!mqttEnabled()) return;
     if (!isConnected) return;
 
-    mqttClient.publish(topicState, 1, true, "online");
-    mqttClient.publish(topicBluetooth, 1, false, BluetoothHandler::check() ? "connected" : "disconnected");
-    
+    MqttBackend::publish(topicState, 1, true, "online");
+    MqttBackend::publish(topicBluetooth, 1, false, BluetoothHandler::check() ? "connected" : "disconnected");
+
     char heapPayload[22];
-    snprintf(heapPayload, sizeof(heapPayload), "%d/%d", ESP.getFreeHeap(), ESP.getHeapSize());
-    mqttClient.publish(topicHeap, 0, false, heapPayload);
+    snprintf(heapPayload, sizeof(heapPayload), "%lu/%lu", (unsigned long)ESP.getFreeHeap(), (unsigned long)ESP.getHeapSize());
+    MqttBackend::publish(topicHeap, 0, false, heapPayload);
 }
 
 /**
@@ -104,7 +96,7 @@ void MqttInput::forward(const char *address, uint16_t port) {
     if (!mqttEnabled()) return;
     if (!isConnected) return;
 
-    mqttClient.publish(topicBluetooth, 1, false, port > 0 ? "connecting" : "disconnected");
+    MqttBackend::publish(topicBluetooth, 1, false, port > 0 ? "connecting" : "disconnected");
 }
 
 /**
@@ -126,7 +118,7 @@ void MqttInput::backward(const uint8_t *buffer, size_t size) {
     if (size == 1 && buffer[0] == 0x96) payload = "disconnected";
     if (size > 2 && buffer[0] == 0x01 && buffer[size - 1] == 0x02) payload = "connected";
 
-    mqttClient.publish(topicBluetooth, 1, false, payload);
+    MqttBackend::publish(topicBluetooth, 1, false, payload);
 }
 
 /**
@@ -141,7 +133,7 @@ void MqttInput::advertise(const uint8_t* address, const char* name, size_t size,
 
     char topicAdvertise[VALIDATE_TOPIC_MAX + sizeof( topicAddress )];
     snprintf(topicAdvertise, sizeof( topicAdvertise ), SettingsHandler::mqttTopic.c_str(), topicAddress);
-    mqttClient.publish(topicAdvertise, 0, false, name);
+    MqttBackend::publish(topicAdvertise, 0, false, name);
 }
 
 /**
@@ -150,8 +142,8 @@ void MqttInput::advertise(const uint8_t* address, const char* name, size_t size,
 void MqttInput::connected(bool sessionPresent) {
     isConnected = true;
 
-    mqttClient.subscribe(topicCommand, 0);
-    mqttClient.publish(topicState, 1, true, "online");
+    MqttBackend::subscribe(topicCommand, 0);
+    MqttBackend::publish(topicState, 1, true, "online");
 
     update();
 }
@@ -159,14 +151,14 @@ void MqttInput::connected(bool sessionPresent) {
 /**
  * onDisconnected event handler
 */
-void MqttInput::disconnected(AsyncMqttClientDisconnectReason reason) {
+void MqttInput::disconnected() {
     isConnected = false;
 }
 
 /**
  * onMessage event handler
 */
-void MqttInput::message(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total) {
+void MqttInput::message(const char* topic, const char* payload, size_t len, size_t index, size_t total) {
     if (strcmp(topic, topicCommand) != 0) return;
     if (total >= sizeof(messageBuffer) || index + len > total) return;
 
@@ -180,7 +172,7 @@ void MqttInput::message(char* topic, char* payload, AsyncMqttClientMessageProper
 /**
  * the parser for incoming data
 */
-void MqttInput::parse(char* topic, char* payload, size_t size) {
+void MqttInput::parse(const char* topic, char* payload, size_t size) {
     if (strcmp(topic, topicCommand) != 0) return;
 
     char *buffer = payload;

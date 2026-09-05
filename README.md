@@ -21,6 +21,9 @@ but you can also use it as standalone communicator for your Divoom devices. Curr
   * [Configuration](#configuration)
     + [Easy Configuration](#easy-configuration)
     + [Manual Configuration](#manual-configuration)
+  * [ESPHome](#esphome)
+    + [ESPHome Configuration](#esphome-configuration)
+    + [ESPHome Differences](#esphome-differences)
   * [Usage](#usage)
     + [Serial](#serial)
     + [TCP](#tcp)
@@ -122,8 +125,8 @@ to be a hostname (letters, digits and dashes, 1 to 31 characters, no dash at the
 
 If you build the firmware yourself, you can also configure it directly in your own `config_local.h` before flashing.
 
-The default configuration `config.h` has a lot of empty values you very likely want to fill. To not run into problems with later updates,
-I recommend you to create a `config_local.h` with your own values. Here is an example:
+The default configuration `components/divoom/config.h` has a lot of empty values you very likely want to fill. To not run into problems with later updates,
+I recommend you to create a `src/config_local.h` with your own values. It belongs into `src`, because it configures the PlatformIO build alone. Here is an example:
 
 ```
 #ifndef _CONFIG_LOCAL_H
@@ -155,7 +158,79 @@ write a configuration image over it. The other way around, every field you leave
 build is exactly your `config_local.h`.
 
 A few settings are still compile time only and therefore not part of the Web Flasher: `LED_BUILTIN`, `BLUETOOTH_FILTER`, `BLUETOOTH_RETRY`, `WIFI_RETRY`, `TCP_PORT`,
-`TCP_MAX`, `SERIAL_OUT_RX` and `SERIAL_OUT_TX`.
+`TCP_MAX`, `SERIAL_OUT_RX` and `SERIAL_OUT_TX`. In the [ESPHome](#esphome) variant most of them are configurable in the YAML instead.
+
+## ESPHome
+
+Besides the PlatformIO firmware, the very same code can be built as an [ESPHome](https://esphome.io/) component. Both variants share their core, so the protocols and
+commands documented below behave the same. What you get on top is the ESPHome tooling: the device is adopted by the ESPHome dashboard and updated over the air, without
+flashing over USB again.
+
+Add the repository as an external component and configure the `divoom` block. A complete example is in [esphome-example.yaml](esphome-example.yaml):
+
+```yaml
+external_components:
+  - source: github://d03n3rfr1tz3/esp32-divoom
+    components: [divoom]
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+divoom:
+  bluetooth_name: divoom-proxy
+```
+
+Bluetooth Classic only exists on the classic ESP32, so the `esp32dev` board and the `arduino` framework are required. For the same reason the component refuses to build
+together with `esp32_ble`, `esp32_ble_tracker`, `esp32_improv` or `bluetooth_proxy`, because BLE and Bluetooth Classic do not coexist here.
+
+Without a `ref`, the source follows the default branch and every build silently picks up its current state. Append the tag of a
+[release](https://github.com/d03n3rfr1tz3/esp32-divoom/releases) instead, if you want to decide yourself when to update:
+`source: github://d03n3rfr1tz3/esp32-divoom@v1.2.1`.
+
+### ESPHome Configuration
+
+Everything is fed in at build time, so there is no runtime configuration UI. WiFi, MQTT broker and device name come from the ESPHome blocks you already have, the rest from
+the `divoom` block:
+
+| Option | Default | Description |
+|---|---|---|
+| `bluetooth_name` | `esphome: name:` | the name the ESP32 advertises via Bluetooth |
+| `bluetooth_retry` | `3` | how often a Bluetooth connection is retried |
+| `bluetooth_filter` | `true` | only advertise Divoom devices instead of everything |
+| `tcp_port` | `7777` | the port the TCP input listens on |
+| `tcp_max_clients` | `3` | how many TCP clients are accepted at once |
+| `mqtt_topic` | `divoom/%s` | the topic pattern, needs exactly one `%s` |
+| `status_led` | `LED_BUILTIN` | the GPIO of the status LED |
+
+The `mqtt:` block is optional. Without it the device is reachable over TCP only, which is enough for the
+[Home Assistant integration](https://github.com/d03n3rfr1tz3/hass-divoom). With it, the MQTT input works exactly as documented below. One detail needs your attention:
+ESPHome sets the last will globally, so put it into the `mqtt:` block yourself, otherwise the availability topic stays `online` after a crash.
+
+```yaml
+mqtt:
+  broker: 192.168.1.10
+  will_message:
+    topic: divoom/proxy
+    payload: offline
+```
+
+The component warns during validation when that does not match your `mqtt_topic`.
+
+### ESPHome Differences
+
+Serial input and output are not available, because ESPHome owns the serial port for its own logging. Everything the [Serial](#serial) section describes therefore only
+applies to the PlatformIO firmware. TCP and MQTT behave the same on both.
+
+Configuration happens at build time only. The `nvs` partition and with it the [Easy Configuration](#easy-configuration) through the Web Flasher are not involved, so a
+value cannot be changed without building again. In exchange you get the ESPHome dashboard, which does exactly that over the air.
+
+WiFi, mDNS and the MQTT connection belong to ESPHome. The zeroconf service `_divoom_esp32._tcp` is still registered on top of its mDNS responder, so the auto discovery of
+the Home Assistant integration keeps working.
+
+The build fits the default partition table with room for the usual two OTA slots, so no custom `partitions:` are needed. Coming from the PlatformIO firmware, the first
+installation has to be a full flash including bootloader and partition table, since the two layouts differ.
 
 ## Usage
 
@@ -567,7 +642,7 @@ pio test -e record
 
 Adding a new MODE command to the coverage takes a single entry in `test/cases.h`. Running `pio test -e record` afterwards creates its golden file.
 
-The remaining tests cover the helpers in `src/util.cpp` and the value checks in `src/validate.h`, which decide whether a configuration value from the `nvs` partition is
+The remaining tests cover the helpers in `components/divoom/util.cpp` and the value checks in `components/divoom/validate.h`, which decide whether a configuration value from the `nvs` partition is
 accepted or replaced by the default.
 
 The NVS encoder of the Web Flasher has its own suite, because it has to produce the exact same bytes as Espressif's own generator. It compares both images byte for byte and

@@ -24,5 +24,8 @@
             inline static String mqttClient;
             inline static String mqttTopic;
             inline static uint16_t mqttPort;
+
+            // not backed by NVS, so it keeps the compile time default unless set
+            inline static uint16_t tcpPort = TCP_PORT;
     };
 #endif

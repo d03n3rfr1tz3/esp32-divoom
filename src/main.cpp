@@ -4,11 +4,11 @@
 #include "config.h"
 #include "settings.h"
 
-#include "hardware/bluetoothctl.h"
-#include "hardware/wifictl.h"
+#include "hardware_bluetoothctl.h"
+#include "hardware_wifictl.h"
 
-#include "input/base.h"
-#include "output/base.h"
+#include "input_base.h"
+#include "output_base.h"
 
 /**
  * setup functionality
