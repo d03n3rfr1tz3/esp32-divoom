@@ -187,7 +187,7 @@ together with `esp32_ble`, `esp32_ble_tracker`, `esp32_improv` or `bluetooth_pro
 
 Without a `ref`, the source follows the default branch and every build silently picks up its current state. Append the tag of a
 [release](https://github.com/d03n3rfr1tz3/esp32-divoom/releases) instead, if you want to decide yourself when to update:
-`source: github://d03n3rfr1tz3/esp32-divoom@v1.2.1`.
+`source: github://d03n3rfr1tz3/esp32-divoom@v2.0.0`.
 
 ### ESPHome Configuration
 
