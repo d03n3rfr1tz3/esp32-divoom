@@ -7,7 +7,8 @@
 **Divoom Proxy for ESP32**
 
 Allows you to send commands to your Divoom device through various protocols. It works as a companion for my [Home Assistant integration](https://github.com/d03n3rfr1tz3/hass-divoom),
-but you can also use it as standalone communicator for your Divoom devices. Currently the following input protocols are implemented. You can find more information in the documentation below.
+but you can also use it as standalone communicator for your Divoom devices. It comes in two [variants](#esphome-or-platformio), as an ESPHome component or as a standalone firmware.
+Currently the following input protocols are implemented. You can find more information in the documentation below.
 
 * **Serial**
 * **TCP**
@@ -15,15 +16,15 @@ but you can also use it as standalone communicator for your Divoom devices. Curr
 
 ## Table of Contents
   * [Requirements](#requirements)
+  * [ESPHome or PlatformIO](#esphome-or-platformio)
   * [Installation](#installation)
-    + [Easy Installation](#easy-installation)
-    + [Manual Installation](#manual-installation)
+    + [ESPHome Installation](#esphome-installation)
+    + [PlatformIO Easy Installation](#platformio-easy-installation)
+    + [PlatformIO Manual Installation](#platformio-manual-installation)
   * [Configuration](#configuration)
-    + [Easy Configuration](#easy-configuration)
-    + [Manual Configuration](#manual-configuration)
-  * [ESPHome](#esphome)
     + [ESPHome Configuration](#esphome-configuration)
-    + [ESPHome Differences](#esphome-differences)
+    + [PlatformIO Easy Configuration](#platformio-easy-configuration)
+    + [PlatformIO Manual Configuration](#platformio-manual-configuration)
   * [Usage](#usage)
     + [Serial](#serial)
     + [TCP](#tcp)
@@ -61,9 +62,57 @@ but you can also use it as standalone communicator for your Divoom devices. Curr
 
 This firmware obviously needs an ESP32. Other then that, not much is needed, as the ESP32 already brings WiFi and Bluetooth with it.
 
+## ESPHome or PlatformIO
+
+The very same code comes in two variants: as a component for your own [ESPHome](https://esphome.io/) configuration or as a standalone firmware built with PlatformIO. They
+share their core, so every protocol and command documented below behaves the same on both. What differs is how the firmware gets onto your ESP32 and where its configuration
+comes from.
+
+| | ESPHome | PlatformIO |
+|---|---|---|
+| Installation | over USB once, from the ESPHome dashboard | over USB, with the Web Flasher or VS Code |
+| Updates | over the air | over USB again |
+| Configuration | in your YAML, so a change means a rebuild | in the `nvs` partition, so a change needs neither toolchain nor rebuild |
+| WiFi and MQTT | the ESPHome blocks you already have | configured in this firmware itself |
+| Protocols | TCP and MQTT | TCP, MQTT and Serial |
+
+If you already run an ESPHome dashboard, the ESPHome variant fits right into it and takes the flashing off your hands from the second update on. If you do not, the
+PlatformIO variant needs nothing besides a browser.
+
+Both are described side by side below, so just follow the sections of the variant you picked.
+
 ## Installation
 
-### Easy Installation
+### ESPHome Installation
+
+Add the repository as an external component and configure the `divoom` block. A complete example is in [esphome-example.yaml](esphome-example.yaml):
+
+```yaml
+external_components:
+  - source: github://d03n3rfr1tz3/esp32-divoom
+    components: [divoom]
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+divoom:
+  bluetooth_name: divoom-proxy
+```
+
+Bluetooth Classic only exists on the classic ESP32, so the `esp32dev` board and the `arduino` framework are required. For the same reason the component refuses to build
+together with `esp32_ble`, `esp32_ble_tracker`, `esp32_improv` or `bluetooth_proxy`, because BLE and Bluetooth Classic do not coexist here.
+
+Without a `ref`, the source follows the default branch and every build silently picks up its current state. Append the tag of a
+[release](https://github.com/d03n3rfr1tz3/esp32-divoom/releases) instead, if you want to decide yourself when to update:
+`source: github://d03n3rfr1tz3/esp32-divoom@v2.0.0`.
+
+The build fits the default partition table with room for the usual two OTA slots, so no custom `partitions:` are needed. Only the first installation goes over USB, every
+update after that over the air. Coming from the PlatformIO firmware, that first installation has to be a full flash including bootloader and partition table, since the two
+layouts differ.
+
+### PlatformIO Easy Installation
 
 The [Web Flasher](https://d03n3rfr1tz3.github.io/esp32-divoom/) installs the firmware of the latest release right from your browser, together with your WiFi and MQTT
 configuration. It needs a browser that speaks Web Serial, so Chrome, Edge or Opera on a desktop. Firefox and Safari cannot talk to serial devices at all.
@@ -75,7 +124,7 @@ configuration. It needs a browser that speaks Web Serial, so Chrome, Edge or Ope
 * ...
 * Profit
 
-### Manual Installation
+### PlatformIO Manual Installation
 
 This firmware is a PlatformIO project. Until I can find and prepare a more easy way for you to get started, you have to just download the source code and build and upload it to an ESP32 via VS Code yourself.
 
@@ -89,7 +138,42 @@ This firmware is a PlatformIO project. Until I can find and prepare a more easy 
 
 ## Configuration
 
-### Easy Configuration
+### ESPHome Configuration
+
+Everything is fed in at build time, so there is no runtime configuration UI. The `nvs` partition and with it the
+[PlatformIO Easy Configuration](#platformio-easy-configuration) are not involved, so no value can be changed without building again. In exchange you get the ESPHome
+dashboard, which does exactly that over the air.
+
+WiFi, MQTT broker and device name come from the ESPHome blocks you already have, the rest from the `divoom` block:
+
+| Option | Default | Description |
+|---|---|---|
+| `bluetooth_name` | `esphome: name:` | the name the ESP32 advertises via Bluetooth |
+| `bluetooth_retry` | `3` | how often a Bluetooth connection is retried |
+| `bluetooth_filter` | `true` | only advertise Divoom devices instead of everything |
+| `tcp_port` | `7777` | the port the TCP input listens on |
+| `tcp_max_clients` | `3` | how many TCP clients are accepted at once |
+| `mqtt_topic` | `divoom/%s` | the topic pattern, needs exactly one `%s` |
+| `status_led` | `LED_BUILTIN` | the GPIO of the status LED |
+
+The `mqtt:` block is optional. Without it the device is reachable over TCP only, which is enough for the
+[Home Assistant integration](https://github.com/d03n3rfr1tz3/hass-divoom). With it, the MQTT input works exactly as documented below. One detail needs your attention:
+ESPHome sets the last will globally, so put it into the `mqtt:` block yourself, otherwise the availability topic stays `online` after a crash.
+
+```yaml
+mqtt:
+  broker: 192.168.1.10
+  will_message:
+    topic: divoom/proxy
+    payload: offline
+```
+
+The component warns during validation when that does not match your `mqtt_topic`.
+
+WiFi, mDNS and the MQTT connection belong to ESPHome. The zeroconf service `_divoom_esp32._tcp` is still registered on top of its mDNS responder, so the auto discovery of
+the Home Assistant integration keeps working.
+
+### PlatformIO Easy Configuration
 
 The [Web Flasher](https://d03n3rfr1tz3.github.io/esp32-divoom/) writes your values into the `nvs` partition of the ESP32. That makes them configuration instead of source code,
 so you neither need a toolchain nor a rebuild to change them. The same form covers both situations:
@@ -121,7 +205,7 @@ If you want to build that image yourself, for example with `esp-idf-nvs-partitio
 Every key you leave out keeps the value the firmware was built with. Two of them are checked on boot and silently fall back to that value if they do not fit: `wifi_name` has
 to be a hostname (letters, digits and dashes, 1 to 31 characters, no dash at the start or end) and `mqtt_topic` has to contain exactly one `%s` and stay below 41 characters.
 
-### Manual Configuration
+### PlatformIO Manual Configuration
 
 If you build the firmware yourself, you can also configure it directly in your own `config_local.h` before flashing.
 
@@ -158,85 +242,14 @@ write a configuration image over it. The other way around, every field you leave
 build is exactly your `config_local.h`.
 
 A few settings are still compile time only and therefore not part of the Web Flasher: `LED_BUILTIN`, `BLUETOOTH_FILTER`, `BLUETOOTH_RETRY`, `WIFI_RETRY`, `TCP_PORT`,
-`TCP_MAX`, `SERIAL_OUT_RX` and `SERIAL_OUT_TX`. In the [ESPHome](#esphome) variant most of them are configurable in the YAML instead.
-
-## ESPHome
-
-Besides the PlatformIO firmware, the very same code can be built as an [ESPHome](https://esphome.io/) component. Both variants share their core, so the protocols and
-commands documented below behave the same. What you get on top is the ESPHome tooling: the device is adopted by the ESPHome dashboard and updated over the air, without
-flashing over USB again.
-
-Add the repository as an external component and configure the `divoom` block. A complete example is in [esphome-example.yaml](esphome-example.yaml):
-
-```yaml
-external_components:
-  - source: github://d03n3rfr1tz3/esp32-divoom
-    components: [divoom]
-
-esp32:
-  board: esp32dev
-  framework:
-    type: arduino
-
-divoom:
-  bluetooth_name: divoom-proxy
-```
-
-Bluetooth Classic only exists on the classic ESP32, so the `esp32dev` board and the `arduino` framework are required. For the same reason the component refuses to build
-together with `esp32_ble`, `esp32_ble_tracker`, `esp32_improv` or `bluetooth_proxy`, because BLE and Bluetooth Classic do not coexist here.
-
-Without a `ref`, the source follows the default branch and every build silently picks up its current state. Append the tag of a
-[release](https://github.com/d03n3rfr1tz3/esp32-divoom/releases) instead, if you want to decide yourself when to update:
-`source: github://d03n3rfr1tz3/esp32-divoom@v2.0.0`.
-
-### ESPHome Configuration
-
-Everything is fed in at build time, so there is no runtime configuration UI. WiFi, MQTT broker and device name come from the ESPHome blocks you already have, the rest from
-the `divoom` block:
-
-| Option | Default | Description |
-|---|---|---|
-| `bluetooth_name` | `esphome: name:` | the name the ESP32 advertises via Bluetooth |
-| `bluetooth_retry` | `3` | how often a Bluetooth connection is retried |
-| `bluetooth_filter` | `true` | only advertise Divoom devices instead of everything |
-| `tcp_port` | `7777` | the port the TCP input listens on |
-| `tcp_max_clients` | `3` | how many TCP clients are accepted at once |
-| `mqtt_topic` | `divoom/%s` | the topic pattern, needs exactly one `%s` |
-| `status_led` | `LED_BUILTIN` | the GPIO of the status LED |
-
-The `mqtt:` block is optional. Without it the device is reachable over TCP only, which is enough for the
-[Home Assistant integration](https://github.com/d03n3rfr1tz3/hass-divoom). With it, the MQTT input works exactly as documented below. One detail needs your attention:
-ESPHome sets the last will globally, so put it into the `mqtt:` block yourself, otherwise the availability topic stays `online` after a crash.
-
-```yaml
-mqtt:
-  broker: 192.168.1.10
-  will_message:
-    topic: divoom/proxy
-    payload: offline
-```
-
-The component warns during validation when that does not match your `mqtt_topic`.
-
-### ESPHome Differences
-
-Serial input and output are not available, because ESPHome owns the serial port for its own logging. Everything the [Serial](#serial) section describes therefore only
-applies to the PlatformIO firmware. TCP and MQTT behave the same on both.
-
-Configuration happens at build time only. The `nvs` partition and with it the [Easy Configuration](#easy-configuration) through the Web Flasher are not involved, so a
-value cannot be changed without building again. In exchange you get the ESPHome dashboard, which does exactly that over the air.
-
-WiFi, mDNS and the MQTT connection belong to ESPHome. The zeroconf service `_divoom_esp32._tcp` is still registered on top of its mDNS responder, so the auto discovery of
-the Home Assistant integration keeps working.
-
-The build fits the default partition table with room for the usual two OTA slots, so no custom `partitions:` are needed. Coming from the PlatformIO firmware, the first
-installation has to be a full flash including bootloader and partition table, since the two layouts differ.
+`TCP_MAX`, `SERIAL_OUT_RX` and `SERIAL_OUT_TX`. In the [ESPHome](#esphome-configuration) variant most of them are configurable in the YAML instead.
 
 ## Usage
 
 ### Serial
 
-You can control your Divoom devices via Serial. Obviously this is more for debugging purposes, but might also be helpful for a quick test. If you press `Monitor` in the PlatformIO Project Tasks, you can
+You can control your Divoom devices via Serial. This one is exclusive to the PlatformIO variant, because in the ESPHome variant the serial port belongs to its own logging.
+Obviously this is more for debugging purposes, but might also be helpful for a quick test. If you press `Monitor` in the PlatformIO Project Tasks, you can
 send some commands directly to your ESP32. Just prepare them in Notepad and then copy them into the Terminal (you will not see what you typed/copied) and press Enter. Depending on the actual command,
 the ESP32 will then send commands to your Divoom device and also give you some information or received packets back. Here are some examples:
 
@@ -263,7 +276,7 @@ MODE brightness 100
 
 ### TCP
 
-You can also control your Divoom devices via TCP. Obviously that is not really meant for user interaction, but for actual communication one a lower level. The most used case for TCP is my own
+You can also control your Divoom devices via TCP. Obviously that is not really meant for user interaction, but for actual communication on a lower level. The most used case for TCP is my own
 [Home Assistant integration](https://github.com/d03n3rfr1tz3/hass-divoom), which uses this ESP32 firmware as a Bluetooth Proxy. But maybe you want to develop your own application based on this,
 so here are some examples:
 
