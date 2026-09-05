@@ -79,4 +79,11 @@ void divoomFail(const char *reason) {
     esphome::divoom::failPending = true;
 }
 
+/**
+ * what the shared core calls where the PlatformIO build stays silent.
+*/
+void divoomLog(const char *message) {
+    ESP_LOGE(esphome::divoom::TAG, "%s", message);
+}
+
 #endif

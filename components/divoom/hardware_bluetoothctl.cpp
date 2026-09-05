@@ -17,7 +17,7 @@ BluetoothHandler::BluetoothHandler() {
  * setup functionality
 */
 void BluetoothHandler::setup(void) {
-    serialBT.begin(SettingsHandler::bluetoothName, true);
+    if (!DIVOOM_BT_BEGIN(serialBT, SettingsHandler::bluetoothName)) DIVOOM_LOG("bluetooth could not be started, no device will connect");
     serialBT.setTimeout(1000);
     serialBT.register_callback(event);
 }
@@ -77,12 +77,16 @@ bool BluetoothHandler::connect(BTAddress address, uint16_t channel) { return con
 bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *pin) {
     if (isConnected) BluetoothHandler::disconnect();
     if (pin != nullptr) DIVOOM_BT_SETPIN(serialBT, pin);
+
+    // a running inquiry blocks the spp connect, so end it first
+    if (isDiscovering) serialBT.discoverAsyncStop();
     delay(10);
-    
+
     isConnecting = true;
     isConnected = serialBT.connect(address, channel);
     isConnecting = false;
 
+    if (!isConnected) DIVOOM_LOG("could not connect to the bluetooth device");
     if (isConnected) {
         remoteAddress = address;
         remoteChannel = channel;

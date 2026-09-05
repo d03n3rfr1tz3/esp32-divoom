@@ -16,7 +16,12 @@
         // task, so ESPHome can tear itself down first.
         void divoomFail(const char *reason);
 
+        // for what is worth reporting but not worth a restart. ESPHome has a
+        // logger, PlatformIO has none. Also in divoom_component.cpp.
+        void divoomLog(const char *message);
+
         #define DIVOOM_FAIL(reason) divoomFail(reason)
+        #define DIVOOM_LOG(message) divoomLog(message)
         #define DIVOOM_WDT_ADD()    ((void)0)
         #define DIVOOM_WDT_RESET()  ((void)0)
 
@@ -28,6 +33,7 @@
         #include "esp_task_wdt.h"
 
         #define DIVOOM_FAIL(reason) ESP.restart()
+        #define DIVOOM_LOG(message) ((void)0)
         #define DIVOOM_WDT_ADD()    esp_task_wdt_add(NULL)
         #define DIVOOM_WDT_RESET()  esp_task_wdt_reset()
 
@@ -40,5 +46,14 @@
         #define DIVOOM_BT_SETPIN(bt, pin) (bt).setPin(pin, strlen(pin))
     #else
         #define DIVOOM_BT_SETPIN(bt, pin) (bt).setPin(pin)
+    #endif
+
+    // BluetoothSerial::begin asks the controller for BTDM, which the br/edr only
+    // controller of the ESPHome build refuses. Its third parameter picks classic
+    // instead and only exists since arduino-esp32 3.x.
+    #ifdef DIVOOM_PLATFORM_ESPHOME
+        #define DIVOOM_BT_BEGIN(bt, name) (bt).begin(name, true, true)
+    #else
+        #define DIVOOM_BT_BEGIN(bt, name) (bt).begin(name, true)
     #endif
 #endif
