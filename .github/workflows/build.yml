@@ -8,7 +8,8 @@ on:
   pull_request:
     branches: ["main"]
   schedule:
-    - cron:  '0 0 1 * *'
+    - cron:  '0 0 * * 1'   # weekly: current release
+    - cron:  '0 3 * * *'   # daily: upcoming beta
 
 jobs:
   build:
@@ -38,6 +39,13 @@ jobs:
 
   esphome:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.channel == 'beta' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        channel: >-
+          ${{ fromJSON(github.event_name == 'workflow_dispatch' && '["stable","beta"]' || github.event.schedule == '0 3 * * *' && '["beta"]' || '["stable"]') }}
 
     steps:
       - uses: actions/checkout@v7
@@ -47,12 +55,17 @@ jobs:
             ~/.cache/pip
             ~/.platformio/.cache
             ~/.espressif
-          key: ${{ runner.os }}-esphome
+          key: ${{ runner.os }}-esphome-${{ matrix.channel }}
       - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Install ESPHome
-        run: pip install --upgrade esphome
+        run: |
+          if [ "${{ matrix.channel }}" = beta ]; then
+            pip install --upgrade --pre esphome
+          else
+            pip install --upgrade esphome
+          fi
 
       - name: Prepare ESPHome Configuration
         run: |

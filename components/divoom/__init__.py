@@ -4,7 +4,10 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 import esphome.final_validate as fv
 from esphome import pins
-from esphome.components.esp32 import add_idf_sdkconfig_option
+from esphome.components.esp32 import (
+    add_idf_sdkconfig_option,
+    include_builtin_idf_component,
+)
 from esphome.const import (
     CONF_BROKER,
     CONF_CLIENT_ID,
@@ -90,6 +93,9 @@ async def to_code(config):
     # arduino libraries are compiled selectively, so ours have to be added back
     cg.add_library("BluetoothSerial", None)
     cg.add_library("WiFi", None)
+
+    # esphome excludes the bt component by default; BluetoothSerial.h needs its headers
+    include_builtin_idf_component("bt")
 
     # bluetooth classic with SPP, which ESPHome does not enable on its own
     add_idf_sdkconfig_option("CONFIG_BT_ENABLED", True)
