@@ -25,6 +25,9 @@
     #ifndef TCP_MAX
         #define TCP_MAX          3
     #endif
+    #ifndef TCP_PACING
+        #define TCP_PACING       15
+    #endif
 
     /* PlatformIO Configuration */
     #ifndef DIVOOM_PLATFORM_ESPHOME

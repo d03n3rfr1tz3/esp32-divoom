@@ -170,6 +170,8 @@ void SerialInput::parse(char *buffer, size_t size) {
  * helper for sending data to serial
 */
 void SerialInput::write(const char* direction, const uint8_t *buffer, size_t size) {
+    if ((size_t)serialIn.availableForWrite() < strlen(direction) + size * 3 + 2) return;
+
     serialIn.print(direction);
     serialIn.print(" ");
 

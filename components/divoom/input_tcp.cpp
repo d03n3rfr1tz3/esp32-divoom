@@ -11,6 +11,7 @@ AsyncServer* tcpServer = nullptr;
 AsyncClient* tcpClients[TCP_MAX];
 
 static frame_stream_t frameStream;
+static unsigned long lastFrame = 0;
 
 /**
  * setup functionality
@@ -20,7 +21,7 @@ void TcpInput::setup() {
     tcpServer->onClient(connection, tcpServer);
     tcpServer->begin();
 
-    parsePacketQueue = xQueueCreate(3, sizeof(data_packet_t*));
+    parsePacketQueue = xQueueCreate(4, sizeof(data_packet_t*));
     
     BaseType_t taskResult = xTaskCreatePinnedToCore(queue, "ParsePacketTask", DIVOOM_TASK_STACK_PARSE, NULL, 1, &parsePacketHandle, 1);
     if (taskResult != pdPASS) DIVOOM_FAIL("could not create the parse packet task");
@@ -131,7 +132,8 @@ void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
     dataPacket->size = size;
     memcpy(dataPacket->data, (uint8_t*)data, size);
 
-    if (xQueueSend(parsePacketQueue, (void*)&dataPacket, (TickType_t)25) == errQUEUE_FULL) {
+    if (xQueueSend(parsePacketQueue, (void*)&dataPacket, pdMS_TO_TICKS(2000)) == errQUEUE_FULL) {
+        DIVOOM_LOG("tcp queue stayed full, dropping a packet");
         free(dataPacket);
     }
 }
@@ -239,6 +241,12 @@ void TcpInput::parse(const uint8_t *buffer, size_t size) {
 
     // recognize a raw statement and pass it into Output handlers
     if (buffer[0] == 0x01 && buffer[size - 1] == 0x02) {
+        
+        unsigned long elapsed = getElapsed(lastFrame);
+        if (elapsed < TCP_PACING) delay(TCP_PACING - elapsed);
+        lastFrame = millis();
+        DIVOOM_WDT_RESET();
+
         BaseInput::forward(buffer, size);
         BaseOutput::forward(buffer, size);
     }
