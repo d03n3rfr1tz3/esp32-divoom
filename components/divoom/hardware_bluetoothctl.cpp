@@ -17,9 +17,8 @@ BluetoothHandler::BluetoothHandler() {
  * setup functionality
 */
 void BluetoothHandler::setup(void) {
-    if (!DIVOOM_BT_BEGIN(serialBT, SettingsHandler::bluetoothName)) DIVOOM_LOG("bluetooth could not be started, no device will connect");
-    serialBT.setTimeout(1000);
-    serialBT.register_callback(event);
+    if (!BluetoothSpp::begin(SettingsHandler::bluetoothName.c_str())) DIVOOM_LOG("bluetooth could not be started, no device will connect");
+    BluetoothSpp::onEvent(event);
 }
 
 /**
@@ -40,7 +39,7 @@ void BluetoothHandler::loop(void) {
  * background task for handling connection state and discovery
 */
 void BluetoothHandler::task(void *parameter) {
-    if (serialBT.connected(5000)) {
+    if (BluetoothSpp::connected(5000)) {
         isConnected = true;
         isConnecting = false;
     } else {
@@ -76,14 +75,14 @@ bool BluetoothHandler::check(void) {
 bool BluetoothHandler::connect(BTAddress address, uint16_t channel) { return connect(address, channel, nullptr); };
 bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *pin) {
     if (isConnected) BluetoothHandler::disconnect();
-    if (pin != nullptr) DIVOOM_BT_SETPIN(serialBT, pin);
+    if (pin != nullptr) BluetoothSpp::setPin(pin);
 
     // a running inquiry blocks the spp connect, so end it first
-    if (isDiscovering) serialBT.discoverAsyncStop();
+    if (isDiscovering) BluetoothSpp::discoverStop();
     delay(10);
 
     isConnecting = true;
-    isConnected = serialBT.connect(address, channel);
+    isConnected = BluetoothSpp::connect(address, channel);
     isConnecting = false;
 
     if (!isConnected) DIVOOM_LOG("could not connect to the bluetooth device");
@@ -106,27 +105,17 @@ bool BluetoothHandler::disconnect(void) {
     // an explicit disconnect is final, so drop the peer to prevent a reconnect
     remoteAddress = BTAddress();
 
-    return serialBT.disconnect();
+    return BluetoothSpp::disconnect();
 }
 
 /**
  * discover bluetooth devices
 */
 void BluetoothHandler::discover(int timeout) {
-    BTScanResults* devices = serialBT.discover(timeout);
-    if (devices == nullptr) {
-        // BluetoothSerial sets _isRemoteAddressSet on connect and never clears it, so discovery stays refused until a restart.
-        // This is quite an old bug, that was never fixed and IMO is a major oversight.
-        DIVOOM_FAIL("discovery refused, bluetooth needs a restart");
-        return;
-    }
-
-    for (int i = 0; i < devices->getCount(); i++) {
-        BTAdvertisedDevice* device = devices->getDevice(i);
-
+    for (const BluetoothDevice &device : BluetoothSpp::discover(timeout)) {
         // check for supported names
-        bool supported = device->haveName();
-        std::string name = device->haveName() ? device->getName() : "Unknown";
+        bool supported = !device.name.empty();
+        std::string name = supported ? device.name : "Unknown";
         if (name.find("Aurabox") == std::string::npos && name.find("AuraBox") == std::string::npos &&
             name.find("Timebox") == std::string::npos && name.find("TimeBox") == std::string::npos &&
             name.find("Ditoo") == std::string::npos &&
@@ -141,16 +130,14 @@ void BluetoothHandler::discover(int timeout) {
 
         // pass it into zeroconf
         if (supported && WifiHandler::mdns()) {
-            DIVOOM_MDNS_TXT("_divoom_esp32", "_tcp", "device_mac", device->getAddress().toString().c_str());
+            DIVOOM_MDNS_TXT("_divoom_esp32", "_tcp", "device_mac", device.address.toString().c_str());
             DIVOOM_MDNS_TXT("_divoom_esp32", "_tcp", "device_name", name.c_str());
         }
 
         // pass it into the input handlers for an advertise announcement
-        BaseInput::advertise((const uint8_t*)device->getAddress().getNative(), name.c_str(), name.size(), supported);
+        BaseInput::advertise(device.address.getNative(), name.c_str(), name.size(), supported);
         vTaskDelay(25 / portTICK_PERIOD_MS);
     }
-
-    serialBT.discoverClear();
 }
 
 /**
@@ -169,15 +156,8 @@ void BluetoothHandler::event(esp_spp_cb_event_t event, esp_spp_cb_param_t *param
             MqttInput::update();
             break;
         case ESP_SPP_DATA_IND_EVT:
-            size_t available;
-            uint8_t buffer[64];
-            while (available = serialBT.available()) {
-                if (available > sizeof(buffer)) available = sizeof(buffer);
-                size_t size = serialBT.readBytes(buffer, available);
-
-                // pass it into the output handlers backward channel
-                BluetoothOutput::backward(buffer, size);
-            }
+            // pass it into the output handlers backward channel
+            BluetoothOutput::backward(param->data_ind.data, param->data_ind.len);
             break;
     }
 }
@@ -188,5 +168,5 @@ void BluetoothHandler::event(esp_spp_cb_event_t event, esp_spp_cb_param_t *param
 size_t BluetoothHandler::send(const uint8_t *buffer, size_t size) {
     if (!isConnected && !isConnecting) return -1;
     if (!isConnected && isConnecting) return 0;
-    return serialBT.write(buffer, size);
+    return BluetoothSpp::write(buffer, size);
 }

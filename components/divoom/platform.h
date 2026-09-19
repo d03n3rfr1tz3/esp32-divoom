@@ -42,18 +42,12 @@
         #define DIVOOM_TASK_STACK_PARSE     3072
     #endif
 
-    // BluetoothSerial::setPin takes the pin length since arduino-esp32 3.x
-    #if ESP_ARDUINO_VERSION_MAJOR >= 3
-        #define DIVOOM_BT_SETPIN(bt, pin) (bt).setPin(pin, strlen(pin))
+    #include "esp_idf_version.h"
+    #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+        #define DIVOOM_BT_SPP_INIT()      ({ esp_spp_cfg_t cfg = BT_SPP_DEFAULT_CONFIG(); cfg.mode = ESP_SPP_MODE_CB; esp_spp_enhanced_init(&cfg); })
+        #define DIVOOM_BT_SET_NAME(name)  esp_bt_gap_set_device_name(name)
     #else
-        #define DIVOOM_BT_SETPIN(bt, pin) (bt).setPin(pin)
-    #endif
-
-    // BluetoothSerial::begin defaults to BTDM, which a br/edr only controller refuses;
-    // its third parameter picks classic and exists since arduino-esp32 3.x
-    #ifdef DIVOOM_PLATFORM_ESPHOME
-        #define DIVOOM_BT_BEGIN(bt, name) (bt).begin(name, true, true)
-    #else
-        #define DIVOOM_BT_BEGIN(bt, name) (bt).begin(name, true)
+        #define DIVOOM_BT_SPP_INIT()      esp_spp_init(ESP_SPP_MODE_CB)
+        #define DIVOOM_BT_SET_NAME(name)  esp_bt_dev_set_device_name(name)
     #endif
 #endif
