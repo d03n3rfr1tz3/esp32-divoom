@@ -91,10 +91,9 @@ FINAL_VALIDATE_SCHEMA = _final_validate
 
 async def to_code(config):
     # arduino libraries are compiled selectively, so ours have to be added back
-    cg.add_library("BluetoothSerial", None)
     cg.add_library("WiFi", None)
 
-    # esphome excludes the bt component by default; BluetoothSerial.h needs its headers
+    # esphome excludes the bt component by default
     include_builtin_idf_component("bt")
 
     # bluetooth classic with SPP, which ESPHome does not enable on its own

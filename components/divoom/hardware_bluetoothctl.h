@@ -5,7 +5,7 @@
     #include "config.h"
     
     #include "platform.h"
-    #include "BluetoothSerial.h"
+    #include "bluetooth_spp.h"
 
     #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
     #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -29,11 +29,10 @@
             static size_t send(const uint8_t *buffer, size_t size);
 
         private:
-            inline static bool isConnected;
+            inline static volatile bool isConnected;
             inline static volatile bool isConnecting;
             inline static volatile bool isDiscovering;
             inline static unsigned long timer;
-            inline static BluetoothSerial serialBT;
             inline static TaskHandle_t discoverHandle;
 
             inline static BTAddress remoteAddress;
