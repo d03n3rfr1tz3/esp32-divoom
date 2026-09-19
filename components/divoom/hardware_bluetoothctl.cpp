@@ -133,6 +133,9 @@ void BluetoothHandler::discover(int timeout) {
             name.find("Pixoo") == std::string::npos &&
             name.find("Timoo") == std::string::npos &&
             name.find("Tivoo") == std::string::npos &&
+            name.find("Tiivoo") == std::string::npos &&
+            name.find("MiniToo") == std::string::npos &&
+            name.find("FlowToo") == std::string::npos &&
             name.find("Divoom") == std::string::npos) supported = false;
         if (BLUETOOTH_FILTER && !supported) continue;
 
