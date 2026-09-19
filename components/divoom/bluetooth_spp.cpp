@@ -24,6 +24,7 @@
 #define SPP_CLOSED       0x10
 
 #define BT_DISCOVERY_COMPLETED 0x02
+#define BT_DISCOVERY_CANCEL_TIMEOUT 1000
 
 #define SPP_TX_QUEUE_SIZE     32
 #define SPP_TX_QUEUE_TIMEOUT  1000
@@ -272,10 +273,11 @@ std::vector<BluetoothDevice> BluetoothSpp::discover(int timeout) {
     devices.clear();
     xEventGroupClearBits(gapEvents, BT_DISCOVERY_COMPLETED);
 
-    // the inquiry length is counted in units of 1.28 seconds
     if (esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, timeout / 1280, 0) == ESP_OK) {
-        xEventGroupWaitBits(gapEvents, BT_DISCOVERY_COMPLETED, pdFALSE, pdTRUE, timeout / portTICK_PERIOD_MS);
-        esp_bt_gap_cancel_discovery();
+        if ((xEventGroupWaitBits(gapEvents, BT_DISCOVERY_COMPLETED, pdFALSE, pdTRUE, timeout / portTICK_PERIOD_MS) & BT_DISCOVERY_COMPLETED) == 0) {
+            esp_bt_gap_cancel_discovery();
+            xEventGroupWaitBits(gapEvents, BT_DISCOVERY_COMPLETED, pdFALSE, pdTRUE, BT_DISCOVERY_CANCEL_TIMEOUT / portTICK_PERIOD_MS);
+        }
     }
 
     return devices;
