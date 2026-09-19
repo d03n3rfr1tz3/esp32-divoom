@@ -251,7 +251,7 @@ A few settings are still compile time only and therefore not part of the Web Fla
 You can control your Divoom devices via Serial. This one is exclusive to the PlatformIO variant, because in the ESPHome variant the serial port belongs to its own logging.
 Obviously this is more for debugging purposes, but might also be helpful for a quick test. If you press `Monitor` in the PlatformIO Project Tasks, you can
 send some commands directly to your ESP32. Just prepare them in Notepad and then copy them into the Terminal (you will not see what you typed/copied) and press Enter. Depending on the actual command,
-the ESP32 will then send commands to your Divoom device and also give you some information or received packets back. Here are some examples:
+the ESP32 will then send commands to your Divoom device and also give you some information back. Sent and received packets only show up after `LOG ON`. Here are some examples:
 
 This command connects to your Divoom device with the MAC address `01:12:23:45:56:67` and on port `1`.
 ````
@@ -267,6 +267,12 @@ SEND 01 04 00 74 64 DC 00 02
 This command disconnect from your Divoom device.
 ````
 DISCONNECT 01:12:23:45:56:67
+````
+
+This command switches the output of sent and received packets on or off. It is off after every restart, because the output can slow down the Bluetooth connection.
+````
+LOG ON
+LOG OFF
 ````
 
 This command sets the brightness to 100% of your connected Divoom device. As you can see, this is a more human readable format. You can find a full list of MODE commands here: [MODE commands](#mode-commands)

@@ -7,6 +7,7 @@
 #include "divoom.h"
 
 HardwareSerial serialIn(0);
+static bool serialLog = false;
 
 /**
  * setup functionality
@@ -164,12 +165,22 @@ void SerialInput::parse(char *buffer, size_t size) {
         BaseInput::forward(bytes, index);
         BaseOutput::forward(bytes, index);
     }
+
+    if (strcmp("LOG ON", buffer) == 0) {
+        serialLog = true;
+        serialIn.println("LOG ON");
+    }
+    if (strcmp("LOG OFF", buffer) == 0) {
+        serialLog = false;
+        serialIn.println("LOG OFF");
+    }
 }
 
 /**
  * helper for sending data to serial
 */
 void SerialInput::write(const char* direction, const uint8_t *buffer, size_t size) {
+    if (!serialLog) return;
     if ((size_t)serialIn.availableForWrite() < strlen(direction) + size * 3 + 2) return;
 
     serialIn.print(direction);
