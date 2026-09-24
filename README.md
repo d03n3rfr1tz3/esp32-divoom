@@ -60,7 +60,7 @@ Currently the following input protocols are implemented. You can find more infor
 
 ## Requirements
 
-This firmware obviously needs an ESP32. Other then that, not much is needed, as the ESP32 already brings WiFi and Bluetooth with it.
+This firmware obviously needs an ESP32. Other than that, not much is needed, as the ESP32 already brings WiFi and Bluetooth with it.
 
 ## ESPHome or PlatformIO
 
@@ -76,7 +76,7 @@ comes from.
 | WiFi and MQTT | the ESPHome blocks you already have | configured in this firmware itself |
 | Protocols | TCP and MQTT | TCP, MQTT and Serial |
 
-If you already run an ESPHome dashboard, the ESPHome variant fits right into it and takes the flashing off your hands from the second update on. If you do not, the
+If you already run an ESPHome dashboard, the ESPHome variant fits right into it and updates over the air after the first installation. If you do not, the
 PlatformIO variant needs nothing besides a browser.
 
 Both are described side by side below, so just follow the sections of the variant you picked.
@@ -101,7 +101,7 @@ divoom:
   bluetooth_name: divoom-proxy
 ```
 
-Bluetooth Classic only exists on the classic ESP32, so the `esp32dev` board and the `arduino` framework are required. For the same reason the component refuses to build
+Bluetooth Classic only exists on the classic ESP32, so the `esp32dev` board and the `arduino` framework are required. The component also refuses to build
 together with `esp32_ble`, `esp32_ble_tracker`, `esp32_improv` or `bluetooth_proxy`, because BLE and Bluetooth Classic do not coexist here.
 
 Without a `ref`, the source follows the default branch and every build silently picks up its current state. Append the tag of a
@@ -126,7 +126,7 @@ configuration. It needs a browser that speaks Web Serial, so Chrome, Edge or Ope
 
 ### PlatformIO Manual Installation
 
-This firmware is a PlatformIO project. Until I can find and prepare a more easy way for you to get started, you have to just download the source code and build and upload it to an ESP32 via VS Code yourself.
+This firmware is a PlatformIO project. If you want to build it yourself, download the source code and build and upload it to an ESP32 via VS Code.
 
 * Download the repository. If you know git, a clone is fine. If not, just download https://github.com/d03n3rfr1tz3/esp32-divoom/archive/main.zip to get the most recent code in a ZIP file.
 * Copy the corresponding content of the ZIP file into a directory of your choice
@@ -140,9 +140,8 @@ This firmware is a PlatformIO project. Until I can find and prepare a more easy 
 
 ### ESPHome Configuration
 
-Everything is fed in at build time, so there is no runtime configuration UI. The `nvs` partition and with it the
-[PlatformIO Easy Configuration](#platformio-easy-configuration) are not involved, so no value can be changed without building again. In exchange you get the ESPHome
-dashboard, which does exactly that over the air.
+Everything is configured in your YAML at build time. The `nvs` partition and the [PlatformIO Easy Configuration](#platformio-easy-configuration) are not
+involved, so every change means a new build, which the ESPHome dashboard installs over the air.
 
 WiFi, MQTT broker and device name come from the ESPHome blocks you already have, the rest from the `divoom` block:
 
@@ -175,8 +174,8 @@ the Home Assistant integration keeps working.
 
 ### PlatformIO Easy Configuration
 
-The [Web Flasher](https://d03n3rfr1tz3.github.io/esp32-divoom/) writes your values into the `nvs` partition of the ESP32. That makes them configuration instead of source code,
-so you neither need a toolchain nor a rebuild to change them. The same form covers both situations:
+The [Web Flasher](https://d03n3rfr1tz3.github.io/esp32-divoom/) writes your values into the `nvs` partition of the ESP32, so changing them needs neither a toolchain
+nor a rebuild. The same form covers both situations:
 
 * On a new device press `Install firmware and configuration`. That writes firmware and configuration in one go.
 * On a device that already runs this firmware press `Update configuration only`. That keeps the firmware and rewrites just your values. The dialog offers to erase the device
@@ -210,7 +209,7 @@ to be a hostname (letters, digits and dashes, 1 to 31 characters, no dash at the
 If you build the firmware yourself, you can also configure it directly in your own `config_local.h` before flashing.
 
 The default configuration `components/divoom/config.h` has a lot of empty values you very likely want to fill. To not run into problems with later updates,
-I recommend you to create a `src/config_local.h` with your own values. It belongs into `src`, because it configures the PlatformIO build alone. Here is an example:
+I recommend creating a `src/config_local.h` with your own values. It belongs in `src`, because it configures the PlatformIO build alone. Here is an example:
 
 ```
 #ifndef _CONFIG_LOCAL_H
@@ -237,9 +236,8 @@ I recommend you to create a `src/config_local.h` with your own values. It belong
 
 Notice the undefining of each value before defining it with my own value. That way you don't get ugly warnings from the compiler later. 😉
 
-Both ways can be combined, because a value stored in the `nvs` partition wins over `config_local.h`. Your own build keeps using your `config_local.h` as long as you never
-write a configuration image over it. The other way around, every field you leave empty in the Web Flasher keeps the value the firmware was built with, which on your own
-build is exactly your `config_local.h`.
+Both ways can be combined: a value stored in the `nvs` partition wins over `config_local.h`, and every field you leave empty in the Web Flasher keeps the value from your
+`config_local.h`.
 
 A few settings are still compile time only and therefore not part of the Web Flasher: `LED_BUILTIN`, `BLUETOOTH_FILTER`, `BLUETOOTH_RETRY`, `WIFI_RETRY`, `TCP_PORT`,
 `TCP_MAX`, `SERIAL_OUT_RX` and `SERIAL_OUT_TX`. In the [ESPHome](#esphome-configuration) variant most of them are configurable in the YAML instead.
@@ -264,7 +262,7 @@ SEND 01 04 00 74 32 AA 00 02
 SEND 01 04 00 74 64 DC 00 02
 ````
 
-This command disconnect from your Divoom device.
+This command disconnects from your Divoom device.
 ````
 DISCONNECT 01:12:23:45:56:67
 ````
@@ -299,16 +297,16 @@ The first packet sets the brightness to 50% and the second one to 100%.
 0104007464DC0002
 ````
 
-This disconnect from your Divoom device. The packet starts with a single byte `0x96` hinting this is a disconnect packet, followed by the MAC address also in raw bytes.
+This disconnects from your Divoom device. The packet starts with a single byte `0x96` hinting this is a disconnect packet, followed by the MAC address also in raw bytes.
 ````
 960112233445566701
 ````
 
 ### MQTT
 
-You can also control your Divoom devices via MQTT as well as getting a few states. This is variant you probably will use, when you are going for the standalone mode. The actual commands are similar to the Serial input. Additionally the general state will be published to `MQTT_TOPIC/proxy`, the bluetooth connection state to `MQTT_TOPIC/bluetooth` and advertise bluetooth devices to `MQTT_TOPIC/advertise/[MAC]` while `[MAC]` stands for the actual MAC address like `01:12:23:45:56:67`.
+You can also control your Divoom devices via MQTT as well as getting a few states. This is the variant you probably will use, when you are going for the standalone mode. The actual commands are similar to the Serial input. Additionally the general state will be published to `MQTT_TOPIC/proxy`, the bluetooth connection state to `MQTT_TOPIC/bluetooth` and advertised bluetooth devices to `MQTT_TOPIC/advertise/[MAC]` while `[MAC]` stands for the actual MAC address like `01:12:23:45:56:67`.
 
-Commands should be sent to the topic `MQTT_TOPIC/command`. For the `MQTT_TOPIC` part, you have to look into your `config_local.h`. Default is `divoom/`, which makes the command topic `divoom/command`.
+Commands should be sent to the topic `MQTT_TOPIC/command`. `MQTT_TOPIC/command` stands for your topic pattern with `command` in place of its `%s`. The default `divoom/%s` makes the command topic `divoom/command`.
 
 This command connects to your Divoom device with the MAC address `01:12:23:45:56:67` and on port `1`.
 ````
@@ -321,7 +319,7 @@ SEND 01 04 00 74 32 AA 00 02
 SEND 01 04 00 74 64 DC 00 02
 ````
 
-This command disconnect from your Divoom device.
+This command disconnects from your Divoom device.
 ````
 DISCONNECT 01:12:23:45:56:67
 ````
@@ -343,7 +341,7 @@ Sets an alarm. You might have to experiment with the options your Divoom device 
 | Parameter | Description |
 | ---       | ---         |
 | `number`  | The concrete slot for the alarm. For the actual amount of slots you might have to look into the phone app. |
-| `time`    | The concrete time for when the alarm should happen in the format `mm:ss`. |
+| `time`    | The concrete time for when the alarm should happen in the format `hh:mm`. |
 | `weekdays` | The list of `0` and `1` for each weekday starting with sunday. Example: `1000001` for weekend only alarm. |
 | `alarmmode` | The alarm mode. Look into your phone app for what is supported by your Divoom device. |
 | `triggermode` | The trigger mode. Look into your phone app for what is supported by your Divoom device. |
@@ -374,11 +372,11 @@ Shows the clock channel.
 | ---       | ---         |
 | `clock`   | The style of the clock. Accepts a number between 0 and 9. <br/> `0` = Fullscreen, `1` = Rainbow, `2` = Boxed, `3` = Analog square, <br/> `4` = Fullscreen negative, `5` = Analog round, `6` = Widescreen |
 | `twentyfour` | Changes between 12h or 24h format. <br/> `0` = 12h, `1` = 24h. Doesn't actually change the current time. |
-| `weather` | Actives or deactivates showing the weather with `0` or `1`. |
-| `temp`    | Actives or deactivates showing the temperature with `0` or `1`. |
-| `calendar` | Actives or deactivates showing the calendar date with `0` or `1`. |
+| `weather` | Activates or deactivates showing the weather with `0` or `1`. |
+| `temp`    | Activates or deactivates showing the temperature with `0` or `1`. |
+| `calendar` | Activates or deactivates showing the calendar date with `0` or `1`. |
 | `color`   | The color of the clock in the typical RGB HEX format. Example: `FF0000` for red. |
-| `hot`     | Actives or deactivates showing the slideshow of the best images with `0` or `1`, which is right next to the other boolean-like buttons in the app, but a completely separate command in the protocol |
+| `hot`     | Activates or deactivates showing the slideshow of the best images with `0` or `1`, which is right next to the other boolean-like buttons in the app, but a completely separate command in the protocol |
 
 ```
 MODE clock 1 1 1 1 1 FF0000 1
@@ -440,7 +438,7 @@ Shows a game. It is theoretically possible to open games, that are not shown in 
 `MODE game [value]`
 | Parameter | Description |
 | ---       | ---         |
-| `value` | The number of the concrete game. Depending on your device you may have different amount of games. Look into your phone app and count them. |
+| `value` | The number of the concrete game. Depending on your device you may have a different number of games. Look into your phone app and count them. |
 
 ```
 MODE game 1
@@ -452,7 +450,7 @@ Sends controlling commands to the currently open game.
 `MODE gamecontrol [value]`
 | Parameter | Description |
 | ---       | ---         |
-| `value` | `0` or `go` = go, <br/> `1` or `left` = left, <br/> `2` or `right` = right, <br/> `3` or `up` = up, <br/> `4` or `bottom` = bottom, <br/> `5` or `ok` = ok |
+| `value` | `0` = go, <br/> `1` = left, <br/> `2` = right, <br/> `3` = up, <br/> `4` = bottom, <br/> `5` = ok |
 
 ```
 MODE gamecontrol 0
@@ -477,7 +475,7 @@ Shows the light channel.
 | Parameter | Description |
 | ---       | ---         |
 | `brightness` | The brightness value between 0 and 100. |
-| `color`   | The color of the clock in the typical RGB HEX format. Example: `FF0000` for red. |
+| `color`   | The color of the light in the typical RGB HEX format. Example: `FF0000` for red. |
 | `power`   | Activates or deactivates powering the LED panel. |
 
 ```
@@ -507,7 +505,7 @@ Sets a memorial (reminder).
 | `text`    | Specifies the name of your memorial, as it will appear in the phone app (default: ESP32). Limited to 16 characters. |
 
 ```
-MODE memorial 1 2020-12-31 59:59:59 Happy New Year!
+MODE memorial 1 2020-12-31 23:59:59 Happy New Year!
 ```
 
 #### MODE noise
@@ -631,12 +629,12 @@ MODE weather 25°C 1
 ### Cannot connect
 Make sure, that your Phone is not currently connected to your Divoom device, because some don't allow that many connections.
 
-If it seems to connect, but looses connection the moment you use any mode, you might have chosen the wrong port. On Pixoo and other non-audio
+If it seems to connect, but loses connection the moment you use any mode, you might have chosen the wrong port. On Pixoo and other non-audio
 devices, it's typically port `1`. But on audio devices, like the Timoo, Tivoo or Ditoo, it might be port `2`. Timebox Mini is also a special case with its port `4`.
 
 ### GIF does not work
 
-The most common problem is, that the GIF does not have the correct size or format. The Divoom devices (and to some extend my code) are nitpicky in that case. Strangly enough the Divoom app lets you download GIFs, but these are typically in the size of 320x320 and not fitting your device.
+The most common problem is, that the GIF does not have the correct size or format. The Divoom devices (and to some extent my code) are nitpicky in that case. Strangely enough the Divoom app lets you download GIFs, but these are typically in the size of 320x320 and not fitting your device.
 Your GIF needs to be exactly the size of your Divoom screen (*16x16* in case of a Pixoo or similar sized device), *non-interlaced* and with a *global color palette*.
 
 I can recommend resizing and converting your GIFs with GIMP. Of course other software might also work, depending on the export/format options. When resizing a GIF downloaded from the Divoom app with GIMP, you better choose no interpolation to not blur your GIF. When exporting with GIMP, make sure to mark the animation checkbox and don't mark the interlace checkbox. For a few more details and an example look into the following comment: https://github.com/d03n3rfr1tz3/hass-divoom/issues/19#issuecomment-1982059358
