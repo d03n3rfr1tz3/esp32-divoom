@@ -87,7 +87,10 @@ static void txTask(void *parameter) {
             length -= chunk;
 
             if (txLength == SPP_TX_MAX || (length == 0 && uxQueueMessagesWaiting(txQueue) == 0)) {
-                if (!txSend()) break;
+                if (!txSend()) {
+                    txLength = 0;
+                    break;
+                }
             }
         }
 
