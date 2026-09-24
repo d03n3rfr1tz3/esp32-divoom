@@ -156,7 +156,7 @@ void BluetoothHandler::event(esp_spp_cb_event_t event, esp_spp_cb_param_t *param
             MqttInput::update();
             break;
         case ESP_SPP_DATA_IND_EVT:
-            // pass it into the output handlers backward channel
+            // pass it into the output handler's backward channel
             BluetoothOutput::backward(param->data_ind.data, param->data_ind.len);
             break;
     }

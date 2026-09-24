@@ -581,7 +581,7 @@ void Divoom::send_datetime(char* date, char* time) {
     if (dateString.length() >= 10 && timeString.length() >= 8) {
         uint16_t year = strtoul(dateString.substr(0, 4).c_str(), NULL, 10);
         buffer[index++] = (uint8_t)(year % 100); // second year part
-        buffer[index++] = (uint8_t)(year / 100); // first your part
+        buffer[index++] = (uint8_t)(year / 100); // first year part
         buffer[index++] = (uint8_t)strtoul(dateString.substr(5, 2).c_str(), NULL, 10); // month
         buffer[index++] = (uint8_t)strtoul(dateString.substr(8, 2).c_str(), NULL, 10); // day
 
@@ -590,7 +590,7 @@ void Divoom::send_datetime(char* date, char* time) {
         buffer[index++] = (uint8_t)strtoul(timeString.substr(6, 2).c_str(), NULL, 10); // second
     } else {
         buffer[index++] = 0x00; // second year part
-        buffer[index++] = 0x00; // first your part
+        buffer[index++] = 0x00; // first year part
         buffer[index++] = 0x00; // month
         buffer[index++] = 0x00; // day
 
@@ -690,7 +690,7 @@ void Divoom::show_light(char* color, uint8_t brightness, bool power) {
 }
 
 /**
- *  shows the effects channel
+ * shows the effects channel
 */
 void Divoom::show_effects(uint8_t value) {
     size_t index = 0;
@@ -783,7 +783,7 @@ void Divoom::show_scoreboard(uint8_t version, uint16_t player1, uint16_t player2
 }
 
 /**
- * shows the lyrics tool
+ * shows the lyrics channel
 */
 void Divoom::show_lyrics() {
     size_t index = 0;
@@ -920,14 +920,14 @@ void Divoom::show_memorial(uint8_t value, char* date, char* time, char* text, bo
     std::string dateString = date == nullptr ? "" : std::string(date);
     std::string timeString = time == nullptr ? "" : std::string(time);
     if (dateString.length() >= 10 && timeString.length() >= 8) {
-        buffer[index++] = 0x01; // alarm on
+        buffer[index++] = 0x01; // memorial on
         buffer[index++] = (uint8_t)strtoul(dateString.substr(5, 2).c_str(), NULL, 10); // month
         buffer[index++] = (uint8_t)strtoul(dateString.substr(8, 2).c_str(), NULL, 10); // day
 
         buffer[index++] = (uint8_t)strtoul(timeString.substr(0, 2).c_str(), NULL, 10); // hour
         buffer[index++] = (uint8_t)strtoul(timeString.substr(3, 2).c_str(), NULL, 10); // minute
     } else {
-        buffer[index++] = 0x00; // alarm off
+        buffer[index++] = 0x00; // memorial off
         buffer[index++] = 0x00; // month
         buffer[index++] = 0x00; // day
 
@@ -990,7 +990,7 @@ void Divoom::show_sleep(bool value, uint8_t sleeptime, uint8_t sleepmode, float 
     size_t index = 0;
     uint8_t buffer[24];
 
-    buffer[index++] = 0x40; // set radio
+    buffer[index++] = 0x40; // set sleeptime
     buffer[index++] = sleeptime; // sleep time in minutes
     buffer[index++] = sleepmode; // sleep mode
     buffer[index++] = value ? 0x01 : 0x00; // on/off

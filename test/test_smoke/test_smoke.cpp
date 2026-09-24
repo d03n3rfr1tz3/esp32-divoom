@@ -7,13 +7,9 @@ void setUp(void) {}
 void tearDown(void) {}
 
 /**
- * parseMode mutates its buffer via strtok, so never pass a string literal --
- * always a writable copy.
- *
- * `Divoom d = Divoom()` value-initializes the instance. A plain `Divoom d;`
- * would leave commands.count indeterminate (the class has no constructor),
- * causing a write past the command[5] array. Both production callers do the
- * same, see the serial and mqtt input.
+ * parseMode mutates its buffer via strtok, so it gets a writable copy.
+ * `Divoom d = Divoom()` value-initializes commands.count, as the class has no
+ * constructor; a plain `Divoom d;` would let it write past command[5].
 */
 static void test_parsemode_links_and_emits_one_command(void) {
     char buffer[64] = { 0 };

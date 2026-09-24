@@ -118,7 +118,7 @@ int8_t TcpInput::clear() {
 }
 
 /**
- * callback for when a client send data
+ * callback for when a client sent data
 */
 void TcpInput::data(void *arg, AsyncClient *client, void *data, size_t size) {
     data_packet_t* dataPacket = (data_packet_t*)MALLOC(sizeof(data_packet_t));

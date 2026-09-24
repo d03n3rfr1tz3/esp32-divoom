@@ -103,7 +103,7 @@ static void assert_frames(const std::vector<bytes_t>& expected, const std::strin
 
 /**
  * feeds a recorded stream through the reassembler in fixed sized chunks and expects
- * exactly the recorded frames back, in order and byte for byte. chunk 0 is one call
+ * exactly the recorded frames back, in order and byte for byte. chunk 0 feeds all in one call
 */
 static void assert_stream(const char* name, size_t chunk) {
     std::vector<bytes_t> expected = read_frames(name);
@@ -254,7 +254,7 @@ static void test_append_loses_nothing_beyond_the_buffer(void) {
 static void test_stream_pixoomax_ha32(void) { assert_chunkings("pixoomax_ha32"); }
 static void test_stream_pixoomax_ha16(void) { assert_chunkings("pixoomax_ha16"); }
 
-/** a single 32x32 image, 757 bytes with a four byte checksum, lost entirely before the refactoring */
+/** a single 32x32 image, 757 bytes with a four byte checksum */
 static void test_stream_pixoomax_smiley32(void) { assert_chunkings("pixoomax_smiley32"); }
 
 static void test_stream_pixoo_ha32(void) { assert_chunkings("pixoo_ha32"); }

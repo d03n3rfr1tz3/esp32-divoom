@@ -7,7 +7,7 @@
 #include <math.h>     // round() in Divoom::send_weather
 #include <string>     // std::string in send_datetime/show_countdown/show_alarm/show_memorial
 
-/** used by util.cpp::getElapsed, implemented in test/arduino_stub.cpp */
+/** used by util.cpp::getElapsed, implemented in test/shared/arduino_stub.cpp */
 unsigned long millis();
 
 /** drives millis() in tests, writable directly */

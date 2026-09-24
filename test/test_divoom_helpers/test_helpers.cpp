@@ -37,8 +37,7 @@ static uint8_t payload_at(const char* command, uint8_t frame, size_t offset) {
 /**
  * Every frame is `01 | len_lo | len_hi | payload | ck_lo | ck_hi | 02` with
  * len = payload + 2 and the checksum summing the length bytes and the payload
- * (see Divoom::command and Divoom::checksum). Verified against every registered
- * case rather than a single one.
+ * (see Divoom::command and Divoom::checksum). Checked for every registered case.
 */
 static void test_framing_invariant_over_all_cases(void) {
     for (size_t i = 0; i < CASE_COUNT; i++) {
