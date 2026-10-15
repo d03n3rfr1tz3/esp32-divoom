@@ -31,6 +31,7 @@
 #define SPP_TX_DONE_TIMEOUT   1000
 #define SPP_CONGESTED_TIMEOUT 1000
 #define SPP_READY_TIMEOUT     10000
+#define SPP_OPEN_SETTLE       500
 #define SPP_TX_MAX            330
 
 typedef struct {
@@ -39,6 +40,7 @@ typedef struct {
 } spp_packet_t;
 
 static uint32_t sppClient = 0;
+static volatile uint32_t sppOpened = 0;
 static bool secondConnectionAttempt = false;
 static esp_spp_cb_t sppCallback = NULL;
 
@@ -62,6 +64,9 @@ static bool txSend(void) {
         txLength = 0;
         return false;
     }
+
+    uint32_t elapsed = millis() - sppOpened;
+    if (elapsed < SPP_OPEN_SETTLE) delay(SPP_OPEN_SETTLE - elapsed);
 
     if (esp_spp_write(sppClient, txLength, txBuffer) != ESP_OK) return false;
     txLength = 0;
@@ -110,6 +115,7 @@ static void sppEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
         case ESP_SPP_OPEN_EVT:
             if (!sppClient) {
                 sppClient = param->open.handle;
+                sppOpened = millis();
             } else {
                 secondConnectionAttempt = true;
                 esp_spp_disconnect(param->open.handle);
