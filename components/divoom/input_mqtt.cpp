@@ -185,7 +185,7 @@ void MqttInput::parse(const char* topic, char* payload, size_t size) {
 
         size_t index = 0;
         esp_bd_addr_t bytes = { 0 };
-        uint16_t port = 1;
+        uint16_t port = SPP_CHANNEL_AUTO;
 
         char *token = strtok(content, ":");
         while (token != NULL && index < ESP_BD_ADDR_LEN) {

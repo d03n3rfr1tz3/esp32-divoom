@@ -3,7 +3,7 @@
     #define _OUTPUT_BLUETOOTH_H
     
     #include "Arduino.h"
-    #include "bluetooth_address.h"
+    #include "bluetooth_spp.h"
 
     class BluetoothOutput {
         public:

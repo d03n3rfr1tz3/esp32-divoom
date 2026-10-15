@@ -8,6 +8,8 @@
     #include "esp_spp_api.h"
     #include "bluetooth_address.h"
 
+    #define SPP_CHANNEL_AUTO 0xFFFF
+
     struct BluetoothDevice {
         BTAddress address;
         std::string name;
@@ -22,6 +24,7 @@
             static void setPin(const char *pin);
 
             static std::vector<BluetoothDevice> discover(int timeout);
+            static uint16_t discoverChannel(const BTAddress &address);
             static void discoverStop(void);
 
             static size_t write(const uint8_t *buffer, size_t size);
