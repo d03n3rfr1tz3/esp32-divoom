@@ -37,9 +37,13 @@ void SerialInput::loop() {
 void SerialInput::forward(const char *address, uint16_t port) {
     if (port > 0) {
         serialIn.print("CONNECT ");
-        serialIn.print(address);
-        serialIn.print(" ");
-        serialIn.println(port);
+        if (port == SPP_CHANNEL_AUTO) {
+            serialIn.println(address);
+        } else {
+            serialIn.print(address);
+            serialIn.print(" ");
+            serialIn.println(port);
+        }
     } else {
         serialIn.print("DISCONNECT ");
         serialIn.println(address);
@@ -91,7 +95,7 @@ void SerialInput::parse(char *buffer, size_t size) {
 
         size_t index = 0;
         esp_bd_addr_t bytes = { 0 };
-        uint16_t port = 1;
+        uint16_t port = SPP_CHANNEL_AUTO;
 
         char *token = strtok(content, ":");
         while (token != NULL && index < ESP_BD_ADDR_LEN) {

@@ -193,7 +193,7 @@ void TcpInput::parse(const uint8_t *buffer, size_t size) {
     // recognize a connect statement and pass it into Bluetooth handler
     if (buffer[0] == 0x69 && size >= ESP_BD_ADDR_LEN + 1 && size <= ESP_BD_ADDR_LEN + 2) {
         esp_bd_addr_t bytes;
-        uint16_t port = 1;
+        uint16_t port = SPP_CHANNEL_AUTO;
 
         for (size_t i = 0; i < ESP_BD_ADDR_LEN; i++)
         {

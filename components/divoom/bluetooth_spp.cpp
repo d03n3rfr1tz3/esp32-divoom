@@ -22,6 +22,7 @@
 #define SPP_CONGESTED    0x04
 #define SPP_DISCONNECTED 0x08
 #define SPP_CLOSED       0x10
+#define SPP_DISCOVERED   0x20
 
 #define BT_DISCOVERY_COMPLETED 0x02
 #define BT_DISCOVERY_CANCEL_TIMEOUT 1000
@@ -41,6 +42,7 @@ typedef struct {
 
 static uint32_t sppClient = 0;
 static volatile uint32_t sppOpened = 0;
+static volatile uint8_t sppChannel = 0;
 static bool secondConnectionAttempt = false;
 static esp_spp_cb_t sppCallback = NULL;
 
@@ -141,6 +143,10 @@ static void sppEvent(esp_spp_cb_event_t event, esp_spp_cb_param_t *param) {
         case ESP_SPP_WRITE_EVT:
             if (param->write.status == ESP_SPP_SUCCESS && param->write.cong) xEventGroupClearBits(sppEvents, SPP_CONGESTED);
             xSemaphoreGive(txDone);
+            break;
+        case ESP_SPP_DISCOVERY_COMP_EVT:
+            sppChannel = (param->disc_comp.status == ESP_SPP_SUCCESS && param->disc_comp.scn_num > 0) ? param->disc_comp.scn[0] : 0;
+            xEventGroupSetBits(sppEvents, SPP_DISCOVERED);
             break;
         default:
             break;
@@ -290,6 +296,23 @@ std::vector<BluetoothDevice> BluetoothSpp::discover(int timeout) {
     }
 
     return devices;
+}
+
+/**
+ * looks up the serial port channel of the given address, 0 if there is none
+*/
+uint16_t BluetoothSpp::discoverChannel(const BTAddress &address) {
+    if ((xEventGroupWaitBits(sppEvents, SPP_RUNNING, pdFALSE, pdTRUE, SPP_READY_TIMEOUT / portTICK_PERIOD_MS) & SPP_RUNNING) == 0) return 0;
+
+    esp_bd_addr_t remote;
+    memcpy(remote, address.getNative(), ESP_BD_ADDR_LEN);
+
+    sppChannel = 0;
+    xEventGroupClearBits(sppEvents, SPP_DISCOVERED);
+    if (esp_spp_start_discovery(remote) != ESP_OK) return 0;
+    if ((xEventGroupWaitBits(sppEvents, SPP_DISCOVERED, pdFALSE, pdTRUE, SPP_READY_TIMEOUT / portTICK_PERIOD_MS) & SPP_DISCOVERED) == 0) return 0;
+
+    return sppChannel;
 }
 
 /**

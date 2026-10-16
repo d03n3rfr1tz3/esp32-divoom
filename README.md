@@ -251,8 +251,10 @@ Obviously this is more for debugging purposes, but might also be helpful for a q
 send some commands directly to your ESP32. Just prepare them in Notepad and then copy them into the Terminal (you will not see what you typed/copied) and press Enter. Depending on the actual command,
 the ESP32 will then send commands to your Divoom device and also give you some information back. Sent and received packets only show up after `LOG ON`. Here are some examples:
 
-This command connects to your Divoom device with the MAC address `01:12:23:45:56:67` and on port `1`.
+This command connects to your Divoom device with the MAC address `01:12:23:45:56:67`. Without a port, the Bluetooth channel is looked up from the device. The second one
+connects on port `1` instead.
 ````
+CONNECT 01:12:23:45:56:67
 CONNECT 01:12:23:45:56:67 1
 ````
 
@@ -284,10 +286,11 @@ You can also control your Divoom devices via TCP. Obviously that is not really m
 [Home Assistant integration](https://github.com/d03n3rfr1tz3/hass-divoom), which uses this ESP32 firmware as a Bluetooth Proxy. But maybe you want to develop your own application based on this,
 so here are some examples:
 
-This connects to your Divoom device with the MAC address `01:12:23:45:56:67` and on port `1`. The packet starts with a single byte `0x69` hinting this is a connect packet, followed
-by the MAC address also in raw bytes as well as the optional port number.
+This connects to your Divoom device with the MAC address `01:12:23:45:56:67`. The packet starts with a single byte `0x69` hinting this is a connect packet, followed
+by the MAC address also in raw bytes as well as the optional port number. Without a port, the Bluetooth channel is looked up from the device. The second one connects on port `1` instead.
 ````
-690112233445566701
+69011223455667
+6901122345566701
 ````
 
 This sends raw bytes to your connected Divoom device. The raw bytes represent the `brightness` command. Typical for the Divoom protocol, the packet starts with `0x01` and ends with `0x02`.
@@ -299,7 +302,7 @@ The first packet sets the brightness to 50% and the second one to 100%.
 
 This disconnects from your Divoom device. The packet starts with a single byte `0x96` hinting this is a disconnect packet, followed by the MAC address also in raw bytes.
 ````
-960112233445566701
+96011223455667
 ````
 
 ### MQTT
@@ -308,8 +311,10 @@ You can also control your Divoom devices via MQTT as well as getting a few state
 
 Commands should be sent to the topic `MQTT_TOPIC/command`. `MQTT_TOPIC/command` stands for your topic pattern with `command` in place of its `%s`. The default `divoom/%s` makes the command topic `divoom/command`.
 
-This command connects to your Divoom device with the MAC address `01:12:23:45:56:67` and on port `1`.
+This command connects to your Divoom device with the MAC address `01:12:23:45:56:67`. Without a port, the Bluetooth channel is looked up from the device. The second one
+connects on port `1` instead.
 ````
+CONNECT 01:12:23:45:56:67
 CONNECT 01:12:23:45:56:67 1
 ````
 
@@ -629,8 +634,8 @@ MODE weather 25°C 1
 ### Cannot connect
 Make sure, that your Phone is not currently connected to your Divoom device, because some don't allow that many connections.
 
-If it seems to connect, but loses connection the moment you use any mode, you might have chosen the wrong port. On Pixoo and other non-audio
-devices, it's typically port `1`. But on audio devices, like the Timoo, Tivoo or Ditoo, it might be port `2`. Timebox Mini is also a special case with its port `4`.
+If it seems to connect, but loses connection the moment you use any mode, you might have chosen the wrong port. Try to connect without a port first. If you set a
+fixed port: On Pixoo and other non-audio devices, it's typically port `1`. But on audio devices, like the Timoo, Tivoo or Ditoo, it might be port `2`. Timebox Mini is also a special case with its port `4`.
 
 ### GIF does not work
 

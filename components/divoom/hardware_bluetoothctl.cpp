@@ -82,7 +82,16 @@ bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *
     delay(10);
 
     isConnecting = true;
-    isConnected = BluetoothSpp::connect(address, channel);
+    uint16_t resolved = channel;
+    if (channel == SPP_CHANNEL_AUTO) {
+        resolved = BluetoothSpp::discoverChannel(address);
+        if (resolved == 0) {
+            DIVOOM_LOG("could not look up the bluetooth channel, using channel 1");
+            resolved = 1;
+        }
+    }
+
+    isConnected = BluetoothSpp::connect(address, resolved);
     isConnecting = false;
 
     if (!isConnected) DIVOOM_LOG("could not connect to the bluetooth device");
