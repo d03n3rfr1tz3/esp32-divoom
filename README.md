@@ -302,7 +302,7 @@ The first packet sets the brightness to 50% and the second one to 100%.
 
 This disconnects from your Divoom device. The packet starts with a single byte `0x96` hinting this is a disconnect packet, followed by the MAC address also in raw bytes.
 ````
-960112233445566701
+96011223455667
 ````
 
 ### MQTT
