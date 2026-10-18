@@ -288,9 +288,11 @@ so here are some examples:
 
 This connects to your Divoom device with the MAC address `01:12:23:45:56:67`. The packet starts with a single byte `0x69` hinting this is a connect packet, followed
 by the MAC address also in raw bytes as well as the optional port number. Without a port, the Bluetooth channel is looked up from the device. The second one connects on port `1` instead.
+The third one looks up the Bluetooth channel too, but falls back to port `2` if the lookup fails. Port `0` stands for the lookup and is followed by the fallback port. Without it, port `1` is the fallback.
 ````
 69011223455667
 6901122345566701
+690112234556670002
 ````
 
 This sends raw bytes to your connected Divoom device. The raw bytes represent the `brightness` command. Typical for the Divoom protocol, the packet starts with `0x01` and ends with `0x02`.

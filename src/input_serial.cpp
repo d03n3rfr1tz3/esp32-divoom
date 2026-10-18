@@ -37,7 +37,7 @@ void SerialInput::loop() {
 void SerialInput::forward(const char *address, uint16_t port) {
     if (port > 0) {
         serialIn.print("CONNECT ");
-        if (port == SPP_CHANNEL_AUTO) {
+        if (SPP_CHANNEL_IS_AUTO(port)) {
             serialIn.println(address);
         } else {
             serialIn.print(address);

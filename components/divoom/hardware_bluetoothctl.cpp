@@ -83,11 +83,15 @@ bool BluetoothHandler::connect(BTAddress address, uint16_t channel, const char *
 
     isConnecting = true;
     uint16_t resolved = channel;
-    if (channel == SPP_CHANNEL_AUTO) {
+    if (SPP_CHANNEL_IS_AUTO(channel)) {
         resolved = BluetoothSpp::discoverChannel(address);
         if (resolved == 0) {
-            DIVOOM_LOG("could not look up the bluetooth channel, using channel 1");
-            resolved = 1;
+            // the low byte carries the fallback channel
+            resolved = (channel & 0xFF) ? (channel & 0xFF) : 1;
+
+            char message[64];
+            snprintf(message, sizeof(message), "could not look up the bluetooth channel, using channel %u", (unsigned int)resolved);
+            DIVOOM_LOG(message);
         }
     }
 

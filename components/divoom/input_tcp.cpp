@@ -191,7 +191,7 @@ void TcpInput::parse(const uint8_t *buffer, size_t size) {
     if (size == 0) return;
 
     // recognize a connect statement and pass it into Bluetooth handler
-    if (buffer[0] == 0x69 && size >= ESP_BD_ADDR_LEN + 1 && size <= ESP_BD_ADDR_LEN + 2) {
+    if (buffer[0] == 0x69 && size >= ESP_BD_ADDR_LEN + 1 && size <= ESP_BD_ADDR_LEN + 3) {
         esp_bd_addr_t bytes;
         uint16_t port = SPP_CHANNEL_AUTO;
 
@@ -202,6 +202,11 @@ void TcpInput::parse(const uint8_t *buffer, size_t size) {
 
         if (size > ESP_BD_ADDR_LEN + 1) {
             port = buffer[7];
+        }
+
+        // port 0 followed by a fallback channel
+        if (size > ESP_BD_ADDR_LEN + 2 && port == 0) {
+            port = SPP_CHANNEL_AUTO | buffer[8];
         }
         
         BTAddress address(bytes);

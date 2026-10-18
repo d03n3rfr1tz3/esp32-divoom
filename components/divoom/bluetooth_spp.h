@@ -8,7 +8,8 @@
     #include "esp_spp_api.h"
     #include "bluetooth_address.h"
 
-    #define SPP_CHANNEL_AUTO 0xFFFF
+    #define SPP_CHANNEL_AUTO 0xFF00
+    #define SPP_CHANNEL_IS_AUTO(channel) (((channel) & 0xFF00) == SPP_CHANNEL_AUTO)
 
     struct BluetoothDevice {
         BTAddress address;
