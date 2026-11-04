@@ -18,6 +18,7 @@ BluetoothHandler::BluetoothHandler() {
 */
 void BluetoothHandler::setup(void) {
     if (!BluetoothSpp::begin(SettingsHandler::bluetoothName.c_str())) DIVOOM_LOG("bluetooth could not be started, no device will connect");
+    if (!SettingsHandler::bluetoothPin.isEmpty()) BluetoothSpp::setPin(SettingsHandler::bluetoothPin.c_str());
     BluetoothSpp::onEvent(event);
 }
 

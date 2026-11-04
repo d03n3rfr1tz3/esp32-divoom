@@ -2,6 +2,7 @@
 #include "settings.h"
 
 #include "Preferences.h"
+#include "esp_gap_bt_api.h"
 
 /**
  * loads the runtime configuration from the nvs partition.
@@ -16,6 +17,7 @@ void SettingsHandler::setup(void) {
     wifiPass2     = preferences.getString("wifi_pass2", WIFIPASS2);
     wifiName      = preferences.getString("wifi_name", WIFI_NAME);
     bluetoothName = preferences.getString("bt_name", BLUETOOTH_NAME);
+    bluetoothPin  = preferences.getString("bt_pin", BLUETOOTH_PIN);
 
     mqttHost      = preferences.getString("mqtt_host", MQTT_HOST);
     mqttUser      = preferences.getString("mqtt_user", MQTT_USER);
@@ -28,6 +30,7 @@ void SettingsHandler::setup(void) {
 
     if (!isValidHostname(wifiName.c_str())) wifiName = WIFI_NAME;
     if (bluetoothName.isEmpty()) bluetoothName = BLUETOOTH_NAME;
+    if (bluetoothPin.length() > ESP_BT_PIN_CODE_LEN) bluetoothPin = BLUETOOTH_PIN;
     if (mqttClient.isEmpty()) mqttClient = MQTT_CLIENT;
     if (!isValidTopicFormat(mqttTopic.c_str())) mqttTopic = MQTT_TOPIC;
     if (mqttPort == 0) mqttPort = MQTT_PORT;

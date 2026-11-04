@@ -17,6 +17,7 @@
             inline static String wifiPass2;
             inline static String wifiName;
             inline static String bluetoothName;
+            inline static String bluetoothPin = BLUETOOTH_PIN;
 
             inline static String mqttHost;
             inline static String mqttUser;

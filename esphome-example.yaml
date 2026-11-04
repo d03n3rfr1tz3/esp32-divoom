@@ -44,6 +44,7 @@ mqtt:
 
 divoom:
   bluetooth_name: ${device_name}
+  # bluetooth_pin: "0000"
   # bluetooth_retry: 3
   # bluetooth_filter: true
   # tcp_port: 7777
