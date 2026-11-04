@@ -63,6 +63,19 @@ static void test_topic_rejects_empty_input(void) {
     TEST_ASSERT_FALSE(isValidTopicFormat(NULL));
 }
 
+static void test_wifi_power_accepts_the_driver_levels(void) {
+    TEST_ASSERT_TRUE(isValidWifiPower(60));
+    TEST_ASSERT_TRUE(isValidWifiPower(78));
+    TEST_ASSERT_TRUE(isValidWifiPower(8));
+}
+
+static void test_wifi_power_rejects_other_values(void) {
+    TEST_ASSERT_FALSE(isValidWifiPower(0));
+    TEST_ASSERT_FALSE(isValidWifiPower(15));
+    TEST_ASSERT_FALSE(isValidWifiPower(79));
+    TEST_ASSERT_FALSE(isValidWifiPower(0xFFFF));
+}
+
 static void test_hostname_accepts_the_default_name(void) {
     TEST_ASSERT_TRUE(isValidHostname("ESP32-Divoom"));
     TEST_ASSERT_TRUE(isValidHostname("divoom-2"));
@@ -105,6 +118,8 @@ int main(int, char**) {
     RUN_TEST(test_topic_rejects_an_escaped_percent);
     RUN_TEST(test_topic_rejects_an_overlong_pattern);
     RUN_TEST(test_topic_rejects_empty_input);
+    RUN_TEST(test_wifi_power_accepts_the_driver_levels);
+    RUN_TEST(test_wifi_power_rejects_other_values);
     RUN_TEST(test_hostname_accepts_the_default_name);
     RUN_TEST(test_hostname_rejects_forbidden_characters);
     RUN_TEST(test_hostname_rejects_a_surrounding_hyphen);

@@ -194,6 +194,7 @@ If you want to build that image yourself, for example with `esp-idf-nvs-partitio
 | `wifi_ssid1` / `wifi_pass1` | str | `WIFISSID1` / `WIFIPASS1` |
 | `wifi_ssid2` / `wifi_pass2` | str | `WIFISSID2` / `WIFIPASS2` |
 | `wifi_name` | str | `WIFI_NAME` |
+| `wifi_power` | u16 | `WIFI_POWER`, the transmit power in 0.25 dBm steps (`60` = 15 dBm, `78` = 19.5 dBm) |
 | `bt_name` | str | `BLUETOOTH_NAME` |
 | `mqtt_host` | str | `MQTT_HOST` |
 | `mqtt_port` | u16 | `MQTT_PORT` |
@@ -638,6 +639,11 @@ Make sure, that your Phone is not currently connected to your Divoom device, bec
 
 If it seems to connect, but loses connection the moment you use any mode, you might have chosen the wrong port. Try to connect without a port first. If you set a
 fixed port: On Pixoo and other non-audio devices, it's typically port `1`. But on audio devices, like the Timoo, Tivoo or Ditoo, it might be port `2`. Timebox Mini is also a special case with its port `4`.
+
+### Joins the network but cannot be reached
+
+The firmware lowers the WiFi transmit power to 15 dBm after joining. With a weak signal the ESP32 then reports an IP address, but nothing reaches it and it keeps restarting.
+Raise `wifi_power` in the Web Flasher (or `WIFI_POWER` in your `config_local.h`) to `78` for 19.5 dBm. In ESPHome the WiFi belongs to ESPHome, so use its `output_power` option instead.
 
 ### GIF does not work
 
