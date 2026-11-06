@@ -129,7 +129,8 @@ label {
 
 input[type="text"],
 input[type="password"],
-input[type="number"] {
+input[type="number"],
+select {
     display: block;
     width: 100%;
     margin-bottom: 1rem;

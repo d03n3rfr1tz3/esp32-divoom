@@ -118,7 +118,7 @@ static void connected(WiFiEvent_t event, WiFiEventInfo_t info) {
     isConnected = true;
     retryCount = 0;
 
-    WiFi.setTxPower(WIFI_POWER_15dBm);
+    WiFi.setTxPower((wifi_power_t)SettingsHandler::wifiPower);
     WiFi.setAutoConnect(true);
     WiFi.setAutoReconnect(true);
     WiFi.setHostname(SettingsHandler::wifiName.c_str());

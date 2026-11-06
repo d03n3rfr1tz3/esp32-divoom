@@ -47,6 +47,9 @@
         #ifndef WIFI_RETRY
             #define WIFI_RETRY       5
         #endif
+        #ifndef WIFI_POWER
+            #define WIFI_POWER       60
+        #endif
 
         #ifndef WIFISSID1
             #define WIFISSID1        ""

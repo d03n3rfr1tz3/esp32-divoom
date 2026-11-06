@@ -2,6 +2,7 @@
 #ifndef _VALIDATE_H
     #define _VALIDATE_H
 
+    #include "stdint.h"
     #include "string.h"
 
     #define VALIDATE_TOPIC_MAX     40
@@ -27,6 +28,18 @@
         }
 
         return count == 1;
+    }
+
+    /**
+     * checks that a transmit power is one of the wifi_power_t levels, given in 0.25 dBm steps
+    */
+    static inline bool isValidWifiPower(uint16_t power) {
+        static const uint16_t levels[] = { 8, 20, 28, 34, 44, 52, 60, 68, 74, 76, 78 };
+        for (uint16_t level : levels) {
+            if (power == level) return true;
+        }
+
+        return false;
     }
 
     /**

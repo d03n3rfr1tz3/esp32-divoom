@@ -16,6 +16,7 @@ void SettingsHandler::setup(void) {
     wifiSsid2     = preferences.getString("wifi_ssid2", WIFISSID2);
     wifiPass2     = preferences.getString("wifi_pass2", WIFIPASS2);
     wifiName      = preferences.getString("wifi_name", WIFI_NAME);
+    wifiPower     = preferences.getUShort("wifi_power", WIFI_POWER);
     bluetoothName = preferences.getString("bt_name", BLUETOOTH_NAME);
     bluetoothPin  = preferences.getString("bt_pin", BLUETOOTH_PIN);
 
@@ -29,6 +30,7 @@ void SettingsHandler::setup(void) {
     preferences.end();
 
     if (!isValidHostname(wifiName.c_str())) wifiName = WIFI_NAME;
+    if (!isValidWifiPower(wifiPower)) wifiPower = WIFI_POWER;
     if (bluetoothName.isEmpty()) bluetoothName = BLUETOOTH_NAME;
     if (bluetoothPin.length() > ESP_BT_PIN_CODE_LEN) bluetoothPin = BLUETOOTH_PIN;
     if (mqttClient.isEmpty()) mqttClient = MQTT_CLIENT;

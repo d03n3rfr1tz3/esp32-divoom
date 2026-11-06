@@ -11,6 +11,7 @@
             { "key": "wifi_ssid2", "type": "str", "value": "GuestNetwork" },
             { "key": "wifi_pass2", "type": "str", "value": "guestsecret" },
             { "key": "wifi_name", "type": "str", "value": "ESP32-Divoom" },
+            { "key": "wifi_power", "type": "u16", "value": 78 },
             { "key": "bt_name", "type": "str", "value": "ESP32-Divoom" },
             { "key": "bt_pin", "type": "str", "value": "0000" },
             { "key": "mqtt_host", "type": "str", "value": "192.168.1.10" },
