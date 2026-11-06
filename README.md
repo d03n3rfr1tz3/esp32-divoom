@@ -148,6 +148,7 @@ WiFi, MQTT broker and device name come from the ESPHome blocks you already have,
 | Option | Default | Description |
 |---|---|---|
 | `bluetooth_name` | `esphome: name:` | the name the ESP32 advertises via Bluetooth |
+| `bluetooth_pin` | | the pairing password of your Divoom device, if it has one |
 | `bluetooth_retry` | `3` | how often a Bluetooth connection is retried |
 | `bluetooth_filter` | `true` | only advertise Divoom devices instead of everything |
 | `tcp_port` | `7777` | the port the TCP input listens on |
@@ -196,6 +197,7 @@ If you want to build that image yourself, for example with `esp-idf-nvs-partitio
 | `wifi_name` | str | `WIFI_NAME` |
 | `wifi_power` | u16 | `WIFI_POWER`, the transmit power in 0.25 dBm steps (`60` = 15 dBm, `78` = 19.5 dBm) |
 | `bt_name` | str | `BLUETOOTH_NAME` |
+| `bt_pin` | str | `BLUETOOTH_PIN` |
 | `mqtt_host` | str | `MQTT_HOST` |
 | `mqtt_port` | u16 | `MQTT_PORT` |
 | `mqtt_user` / `mqtt_pass` | str | `MQTT_USER` / `MQTT_PASS` |
@@ -639,6 +641,9 @@ Make sure, that your Phone is not currently connected to your Divoom device, bec
 
 If it seems to connect, but loses connection the moment you use any mode, you might have chosen the wrong port. Try to connect without a port first. If you set a
 fixed port: On Pixoo and other non-audio devices, it's typically port `1`. But on audio devices, like the Timoo, Tivoo or Ditoo, it might be port `2`. Timebox Mini is also a special case with its port `4`.
+
+If the connection keeps failing on every port, your device was probably set up with "Connect with password" in the Divoom app. Either switch that off
+in the app or set the same password as `bt_pin` in the Web Flasher, `BLUETOOTH_PIN` in your `config_local.h` or `bluetooth_pin` in ESPHome.
 
 ### Joins the network but cannot be reached
 

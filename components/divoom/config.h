@@ -17,6 +17,9 @@
     #ifndef BLUETOOTH_FILTER
         #define BLUETOOTH_FILTER true
     #endif
+    #ifndef BLUETOOTH_PIN
+        #define BLUETOOTH_PIN    ""
+    #endif
 
     /* TCP Configuration */
     #ifndef TCP_PORT
