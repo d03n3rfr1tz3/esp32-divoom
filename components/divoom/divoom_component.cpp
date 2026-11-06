@@ -51,6 +51,7 @@ void DivoomComponent::loop() {
 void DivoomComponent::dump_config() {
     ESP_LOGCONFIG(TAG, "Divoom:");
     ESP_LOGCONFIG(TAG, "  Bluetooth Name: %s", SettingsHandler::bluetoothName.c_str());
+    ESP_LOGCONFIG(TAG, "  Bluetooth PIN: %s", SettingsHandler::bluetoothPin.isEmpty() ? "not set" : "set");
     ESP_LOGCONFIG(TAG, "  TCP Port: %u", SettingsHandler::tcpPort);
     ESP_LOGCONFIG(TAG, "  TCP Max Clients: %d", TCP_MAX);
     if (!SettingsHandler::mqttHost.isEmpty()) {
@@ -59,6 +60,7 @@ void DivoomComponent::dump_config() {
 }
 
 void DivoomComponent::set_bluetooth_name(const char *name) { SettingsHandler::bluetoothName = name; }
+void DivoomComponent::set_bluetooth_pin(const char *pin) { SettingsHandler::bluetoothPin = pin; }
 void DivoomComponent::set_tcp_port(uint16_t port) { SettingsHandler::tcpPort = port; }
 void DivoomComponent::set_mqtt_host(const char *host) { SettingsHandler::mqttHost = host; }
 void DivoomComponent::set_mqtt_port(uint16_t port) { SettingsHandler::mqttPort = port; }

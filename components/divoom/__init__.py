@@ -32,6 +32,7 @@ AUTO_LOAD = ["async_tcp", "mdns"]
 CONFLICTS_WITH = ["esp32_ble", "esp32_ble_tracker", "esp32_improv", "bluetooth_proxy"]
 
 CONF_BLUETOOTH_NAME = "bluetooth_name"
+CONF_BLUETOOTH_PIN = "bluetooth_pin"
 CONF_BLUETOOTH_RETRY = "bluetooth_retry"
 CONF_BLUETOOTH_FILTER = "bluetooth_filter"
 CONF_TCP_PORT = "tcp_port"
@@ -57,6 +58,9 @@ CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(DivoomComponent),
         cv.Optional(CONF_BLUETOOTH_NAME): cv.string_strict,
+        cv.Optional(CONF_BLUETOOTH_PIN): cv.All(
+            cv.string_strict, cv.Length(min=1, max=16)
+        ),
         cv.Optional(CONF_BLUETOOTH_RETRY, default=3): cv.int_range(min=0, max=255),
         cv.Optional(CONF_BLUETOOTH_FILTER, default=True): cv.boolean,
         cv.Optional(CONF_TCP_PORT, default=7777): cv.port,
@@ -124,6 +128,8 @@ async def to_code(config):
 
     if CONF_BLUETOOTH_NAME in config:
         cg.add(var.set_bluetooth_name(config[CONF_BLUETOOTH_NAME]))
+    if CONF_BLUETOOTH_PIN in config:
+        cg.add(var.set_bluetooth_pin(config[CONF_BLUETOOTH_PIN]))
     cg.add(var.set_tcp_port(config[CONF_TCP_PORT]))
     cg.add(var.set_mqtt_topic(config[CONF_MQTT_TOPIC]))
 

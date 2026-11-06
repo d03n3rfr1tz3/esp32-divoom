@@ -21,6 +21,7 @@ const FIELDS = [
     { key: "wifi_pass2", type: "str" },
     { key: "wifi_name", type: "str" },
     { key: "bt_name", type: "str" },
+    { key: "bt_pin", type: "str" },
     { key: "mqtt_host", type: "str" },
     { key: "mqtt_port", type: "u16" },
     { key: "mqtt_user", type: "str" },

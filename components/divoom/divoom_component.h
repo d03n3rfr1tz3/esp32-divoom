@@ -18,6 +18,7 @@ class DivoomComponent : public Component {
         float get_setup_priority() const override { return setup_priority::LATE; }
 
         void set_bluetooth_name(const char *name);
+        void set_bluetooth_pin(const char *pin);
         void set_tcp_port(uint16_t port);
         void set_mqtt_host(const char *host);
         void set_mqtt_port(uint16_t port);
