@@ -39,6 +39,11 @@
                 <label for="wifi_pass2">Secondary WiFi Password</label>
                 <input id="wifi_pass2" name="wifi_pass2" type="password" maxlength="63" autocomplete="off" spellcheck="false">
 
+                <div class="check">
+                    <input id="reveal" type="checkbox">
+                    <label for="reveal">Show passwords</label>
+                </div>
+
                 <label for="wifi_power">WiFi transmit power <span class="optional">optional</span></label>
                 <select id="wifi_power" name="wifi_power">
                     <option value="">Default (15 dBm)</option>
@@ -51,11 +56,6 @@
                     <option value="34">8.5 dBm</option>
                 </select>
                 <p class="hint">Raise it when the ESP32 joins the network but cannot be reached, which happens with a weak signal.</p>
-
-                <div class="check">
-                    <input id="reveal" type="checkbox">
-                    <label for="reveal">Show passwords</label>
-                </div>
             </fieldset>
 
             <fieldset>

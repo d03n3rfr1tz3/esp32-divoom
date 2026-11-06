@@ -158,6 +158,7 @@ input:invalid {
     display: flex;
     gap: 0.4rem;
     align-items: center;
+    margin-bottom: 1rem;
 }
 
 .check label {
